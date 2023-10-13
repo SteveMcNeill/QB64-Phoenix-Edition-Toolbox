@@ -1,0 +1,390 @@
+$Let INCLUDE_ALL = TRUE
+Option _Explicit
+'Let above is only enabled to allow the auto-formatting and syntax checking to run.
+'Be certain to disable if before saving or using this file.
+
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_CONVERT_OFFSET = TRUE Then
+    $If CONVERTOFFSET_BM = UNDEFINED Then
+        $Let CONVERTOFFSET_BM = TRUE
+        Function ConvertOffset&& (value As _Offset)
+            $Checking:Off
+            Dim m As _MEM 'Define a memblock
+            m = _Mem(value) 'Point it to use value
+            $If 64BIT Then
+                'On 64 bit OSes, an OFFSET is 8 bytes in size.  We need an Integer64 to store it.
+                Dim temp As _Integer64
+            $Else
+                    'However, on 32 bit OSes, an OFFSET is only 4 bytes.  We need to put it into a LONG variable first
+                    dim temp as long
+            $End If
+            _MemGet m, m.OFFSET, temp 'Like this
+            _MemFree m 'Free the memblock
+            $Checking:On
+        End Function
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_MEMSORT = TRUE Then
+    $If MEMSORT_BM = UNDEFINED Then
+        $Let MEMSORT_BM = TRUE
+        Sub MemSort (m As _MEM)
+            Dim i As _Unsigned Long
+            Dim As Long DataType, i1, gap, swapped, false
+            $If 64BIT Then
+                Dim ES As _Integer64, EC As _Integer64
+            $Else
+                    DIM ES AS LONG, EC AS LONG
+            $End If
+
+            If Not m.TYPE And 65536 Then Exit Sub 'We won't work without an array
+            If m.TYPE And 1024 Then DataType = 10
+            If m.TYPE And 1 Then DataType = DataType + 1
+            If m.TYPE And 2 Then DataType = DataType + 2
+            If m.TYPE And 4 Then If m.TYPE And 128 Then DataType = DataType + 4 Else DataType = 3
+            If m.TYPE And 8 Then If m.TYPE And 128 Then DataType = DataType + 8 Else DataType = 5
+            If m.TYPE And 32 Then DataType = 6
+            If m.TYPE And 512 Then DataType = 7
+
+            'Convert our offset data over to something we can work with
+            Dim m1 As _MEM: m1 = _MemNew(Len(ES))
+            _MemPut m1, m1.OFFSET, m.ELEMENTSIZE: _MemGet m1, m1.OFFSET, ES 'Element Size
+            _MemPut m1, m1.OFFSET, m.SIZE: _MemGet m1, m1.OFFSET, EC 'Element Count will temporily hold the WHOLE array size
+            _MemFree m1
+
+            EC = EC / ES - 1 'Now we take the whole element size / the size of the elements and get our actual element count.  We subtract 1 so our arrays start at 0 and not 1.
+            'And work with it!
+            Dim o As _Offset, o1 As _Offset, counter As _Unsigned Long
+
+            Select Case DataType
+                Case 1 'BYTE
+                    Dim temp1(-128 To 127) As _Unsigned Long
+                    Dim t1 As _Byte
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i, t1
+                        temp1(t1) = temp1(t1) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = -128
+                    Do
+                        Do Until temp1(i1) = 0
+                            _MemPut m, m.OFFSET + counter, i1 As _BYTE
+                            counter = counter + 1
+                            temp1(i1) = temp1(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 127
+                Case 2: 'INTEGER
+                    Dim temp2(-32768 To 32767) As _Unsigned Long
+                    Dim t2 As Integer
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i * 2, t2
+                        temp2(t2) = temp2(t2) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = -32768
+                    Do
+                        Do Until temp2(i1) = 0
+                            _MemPut m, m.OFFSET + counter * 2, i1 As INTEGER
+                            counter = counter + 1
+                            temp2(i1) = temp2(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 32767
+                Case 3 'SINGLE
+                    Dim T3a As Single, T3b As Single
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 4
+                            o1 = m.OFFSET + (i + gap) * 4
+                            If _MemGet(m, o, Single) > _MemGet(m, o1, Single) Then
+                                _MemGet m, o1, T3a
+                                _MemGet m, o, T3b
+                                _MemPut m, o1, T3b
+                                _MemPut m, o, T3a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 4 'LONG
+                    Dim T4a As Long, T4b As Long
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 4
+                            o1 = m.OFFSET + (i + gap) * 4
+                            If _MemGet(m, o, Long) > _MemGet(m, o1, Long) Then
+                                _MemGet m, o1, T4a
+                                _MemGet m, o, T4b
+                                _MemPut m, o1, T4b
+                                _MemPut m, o, T4a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 5 'DOUBLE
+                    Dim T5a As Double, T5b As Double
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 8
+                            o1 = m.OFFSET + (i + gap) * 8
+                            If _MemGet(m, o, Double) > _MemGet(m, o1, Double) Then
+                                _MemGet m, o1, T5a
+                                _MemGet m, o, T5b
+                                _MemPut m, o1, T5b
+                                _MemPut m, o, T5a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 6 ' _FLOAT
+                    Dim T6a As _Float, T6b As _Float
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 32
+                            o1 = m.OFFSET + (i + gap) * 32
+                            If _MemGet(m, o, _Float) > _MemGet(m, o1, _Float) Then
+                                _MemGet m, o1, T6a
+                                _MemGet m, o, T6b
+                                _MemPut m, o1, T6b
+                                _MemPut m, o, T6a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 7 'String
+                    Dim T7a As String, T7b As String, T7c As String
+                    T7a = Space$(ES): T7b = Space$(ES): T7c = Space$(ES)
+                    gap = EC
+                    Do
+                        gap = Int(gap / 1.247330950103979)
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * ES
+                            o1 = m.OFFSET + (i + gap) * ES
+                            _MemGet m, o, T7a
+                            _MemGet m, o1, T7b
+                            If T7a > T7b Then
+                                T7c = T7b
+                                _MemPut m, o1, T7a
+                                _MemPut m, o, T7c
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = false
+                Case 8 '_INTEGER64
+                    Dim T8a As _Integer64, T8b As _Integer64
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 8
+                            o1 = m.OFFSET + (i + gap) * 8
+                            If _MemGet(m, o, _Integer64) > _MemGet(m, o1, _Integer64) Then
+                                _MemGet m, o1, T8a
+                                _MemGet m, o, T8b
+                                _MemPut m, o1, T8b
+                                _MemPut m, o, T8a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 11: '_UNSIGNED _BYTE
+                    Dim temp11(0 To 255) As _Unsigned Long
+                    Dim t11 As _Unsigned _Byte
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i, t11
+                        temp11(t11) = temp11(t11) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = 0
+                    Do
+                        Do Until temp11(i1) = 0
+                            _MemPut m, m.OFFSET + counter, i1 As _UNSIGNED _BYTE
+                            counter = counter + 1
+                            temp11(i1) = temp11(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 255
+                Case 12 '_UNSIGNED INTEGER
+                    Dim temp12(0 To 65535) As _Unsigned Long
+                    Dim t12 As _Unsigned Integer
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i * 2, t12
+                        temp12(t12) = temp12(t12) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = 0
+                    Do
+                        Do Until temp12(i1) = 0
+                            _MemPut m, m.OFFSET + counter * 2, i1 As _UNSIGNED INTEGER
+                            counter = counter + 1
+                            temp12(i1) = temp12(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 65535
+                Case 14 '_UNSIGNED LONG
+                    Dim T14a As _Unsigned Long, T14b As _Unsigned Long
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 4
+                            o1 = m.OFFSET + (i + gap) * 4
+                            If _MemGet(m, o, _Unsigned Long) > _MemGet(m, o1, _Unsigned Long) Then
+                                _MemGet m, o1, T14a
+                                _MemGet m, o, T14b
+                                _MemPut m, o1, T14b
+                                _MemPut m, o, T14a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 18: '_UNSIGNED _INTEGER64
+                    Dim T18a As _Unsigned _Integer64, T18b As _Unsigned _Integer64
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 8
+                            o1 = m.OFFSET + (i + gap) * 8
+                            If _MemGet(m, o, _Unsigned _Integer64) > _MemGet(m, o1, _Unsigned _Integer64) Then
+                                _MemGet m, o1, T18a
+                                _MemGet m, o, T18b
+                                _MemPut m, o1, T18b
+                                _MemPut m, o, T18a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+            End Select
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCROLLUP = TRUE Then
+    $If SCROLLUP_BM = UNDEFINED Then
+        $Let SCROLLUP_BM = TRUE
+        Sub ScrollUp (ImageHandle As Long)
+            $Checking:Off
+            Dim m As _MEM
+            Dim As Long p, w
+            Dim As String t
+            m = _MemImage(ImageHandle)
+            p = _PixelSize
+            If p = 0 Then w = _Width * 2 Else w = _FontHeight * _Width * p
+            t$ = Space$(m.SIZE - w)
+            _MemGet m, m.OFFSET + w, t$
+            Cls
+            _MemPut m, m.OFFSET, t$
+            _MemFree m
+            $Checking:On
+        End Sub
+    $End If
+$End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCROLLDOWN = TRUE Then
+    $If SCROLLDOWN_BM = UNDEFINED Then
+        $Let SCROLLDOWN_BM = TRUE
+        Sub ScrollDown (ImageHandle As Long)
+            $Checking:Off
+            Dim m As _MEM
+            Dim As Long p, w
+            Dim As String t
+            m = _MemImage(ImageHandle)
+            p = _PixelSize
+            If p = 0 Then w = _Width * 2 Else w = _FontHeight * _Width * p
+            t$ = Space$(m.SIZE - w)
+            _MemGet m, m.OFFSET, t$
+            Cls
+            _MemPut m, m.OFFSET + w, t$
+            _MemFree m
+            $Checking:On
+        End Sub
+    $End If
+$End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_SOUND = TRUE OR INCLUDE_SPEAK = TRUE Then
+    $If SPEAK_BM = UNDEFINED Then
+        $Let SPEAK_BM = TRUE
+        $If WIN Then
+            Sub Speak (text As String, Speaker As Integer, Speed As Long)
+                Dim As String message, remove
+                Dim out$
+                Dim As Long j, i
+                message = text
+                'some symbols and such can't be used with Powershell like this, as they're command symbols
+                'we need to strip them out of our text.  (Like apostrophes!)
+                remove$ = "'" + Chr$(34) 'add to remove$ here, if more symbols need to be removed as future testing showcases problems
+                For j = 1 To Len(remove$)
+                    Do
+                        i = InStr(message, Mid$(remove$, j, 1))
+                        If i Then message = Left$(message, i - 1) + Mid$(message, i + 1)
+                    Loop Until i = 0
+                Next
+                out$ = "Powershell -Command " + Chr$(34)
+                out$ = out$ + "Add-Type -AssemblyName System.Speech; "
+                out$ = out$ + "$Speech = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+                If Speaker = 0 Then out$ = out$ + "$Speech.SelectVoice('Microsoft David Desktop'); "
+                If Speaker = 1 Then out$ = out$ + "$Speech.SelectVoice('Microsoft Zira Desktop'); "
+                If Speed Then out$ = out$ + "$Speech.Rate =" + Str$(Speed) + "; "
+                out$ = out$ + "$Speech.Speak('" + message + "');" + Chr$(34)
+                Shell _Hide out$
+            End Sub
+        $Else
+                Sub Speak (dummy as string, dummy1 as Integer, dummy2 as long)
+                BEEP
+                _MESSAGEBOX "Warning!", "Notice: SUB Speak is a Windows-Only routine, as it relies upon Powershell to do its work.  This routine does not work on Linux or Mac.", "warning"
+                End Sub
+        $End If
+    $End If
+$End If
