@@ -388,3 +388,61 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_SOUND = TRUE OR INCLUDE_SPEAK = TRUE Then
         $End If
     $End If
 $End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_BORDERWIDTH = TRUE Then
+    $If BORDERWIDTH_BM = UNDEFINED Then
+        $Let BORDERWIDTH_BM = TRUE
+        Function BorderWidth&
+            $Let GLUTGET = TRUE
+            BorderWidth = glutGet(506)
+        End Function
+    $End If
+$End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_TITLEBARHEIGHT = TRUE Then
+    $If TITLEBARHEIGHT_BM = UNDEFINED Then
+        $Let TITLEBARHEIGHT_BM = TRUE
+        Function TitleBarHeight&
+            $Let GLUTGET = TRUE
+            TitleBarHeight = glutGet(507)
+        End Function
+    $End If
+$End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCREENMOVE_MIDDLE = TRUE Then
+    $If SCREENMOVE_MIDDLE_BM = UNDEFINED Then
+        $Let SCREENMOVE_MIDDLE_BM = TRUE
+        Sub ScreenMove_Middle
+            'Moves to the absolute middle of the desktop, ignoring border and title, so the program window is centered without
+            'taking them into consideration.
+            $Let GLUTGET = TRUE
+            _ScreenMove (_DesktopWidth - _Width - BorderWidth) / 2 + 1, (_DesktopHeight - _Height - BorderWidth) / 2 - TitleBarHeight + 1
+        End Sub
+    $End If
+$End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCREENMOVE = TRUE Then
+    $If SCREENMOVE_BM = UNDEFINED Then
+        $Let SCREENMOVE_BM = TRUE
+        Sub ScreenMove (x, y)
+            'Moves to the absolute coordinates of the desktop, ignoring border and title, so the program window is
+            ' positioned with the program window at the desired position, without taking them into consideration.
+            $Let GLUTGET = TRUE
+            _ScreenMove x - BorderWidth, y - BorderWidth - TitleBarHeight
+        End Sub
+    $End If
+$End If
+
+
+
+'DECLARED LIBRARY Code which is added as needed automatically from the routines above.
+$If GLUTGET = TRUE Then
+    $If GLUTGET_DECLARED = UNDEFINED Then
+        $Let GLUTGET_DECLARED = TRUE
+        Declare Library
+            Function glutGet& (ByVal what&)
+        End Declare
+    $End If
+$End If
+
+
