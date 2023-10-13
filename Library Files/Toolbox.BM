@@ -1,5 +1,4 @@
-$Let INCLUDE_ALL = TRUE
-Option _Explicit
+'$INCLUDE:'Toolbox.BI'
 'Let above is only enabled to allow the auto-formatting and syntax checking to run.
 'Be certain to disable if before saving or using this file.
 
@@ -450,6 +449,76 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_WINDOWHEIGHT = TRUE T
         End Function
     $End If
 $End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_MOUSE = TRUE OR INCLUDE_MOUSEBUTTONSTATUS = TRUE Then
+    $If MOUSEBUTTONSTATUS_BM = UNDEFINED Then
+        $Let MOUSEBUTTONSTATUS_BM = TRUE
+        Function MouseButtonStatus% (takeMouseInput As Long)
+            '1 -- left down
+            '2 -- right down
+            '4 -- middle down
+            '8 -- left clicked
+            '16 -- right clicked
+            '32 -- middle clicked
+            '64 -- left held
+            '128 -- right held
+            '256 -- middle held
+            '512 -- scroll down
+            '1024 -- scroll up
+
+            Static StartTimer As _Float
+            Static ButtonDown As Integer
+            Const ClickLimit## = 0.2 'Less than 1/4th of a second to down, up a key to count as a CLICK.
+            '                          Down longer counts as a HOLD event.
+            Dim As Long tempMBS, bd
+            If takeMouseInput Then
+                While _MouseInput 'Remark out this block, if mouse main input/clear is going to be handled manually in main program.
+                    Select Case Sgn(_MouseWheel)
+                        Case 1: tempMBS = tempMBS Or 512
+                        Case -1: tempMBS = tempMBS Or 1024
+                    End Select
+                Wend
+            End If
+
+            If _MouseButton(1) Then tempMBS = tempMBS Or 1
+            If _MouseButton(2) Then tempMBS = tempMBS Or 2
+            If _MouseButton(3) Then tempMBS = tempMBS Or 4
+
+            If StartTimer = 0 Then
+                If _MouseButton(1) Then 'If a button is pressed, start the timer to see what it does (click or hold)
+                    ButtonDown = 1: StartTimer = Timer(0.01)
+                    Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+                ElseIf _MouseButton(2) Then
+                    ButtonDown = 2: StartTimer = Timer(0.01)
+                    Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+                ElseIf _MouseButton(3) Then
+                    ButtonDown = 3: StartTimer = Timer(0.01)
+                    Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+                End If
+            Else
+                bd = ButtonDown Mod 3
+                If bd = 0 Then bd = 3
+                If Timer(0.01) - StartTimer <= ClickLimit Then 'Button was down, then up, within time limit.  It's a click
+                    If _MouseButton(bd) = 0 Then tempMBS = 4 * 2 ^ ButtonDown: ButtonDown = 0: StartTimer = 0
+                Else
+                    If _MouseButton(bd) = 0 Then 'hold event has now ended
+                        tempMBS = 0: ButtonDown = 0: StartTimer = 0
+                        Mouse_EndX = _MouseX: Mouse_EndY = _MouseY
+                    Else 'We've now started the hold event
+                        tempMBS = tempMBS Or 32 * 2 ^ ButtonDown
+                    End If
+                End If
+            End If
+            MouseButtonStatus = tempMBS
+        End Function
+    $End If
+$End If
+
+
+
+
+
+
 
 
 
