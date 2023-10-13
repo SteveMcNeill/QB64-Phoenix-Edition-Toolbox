@@ -652,6 +652,374 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_EXTENDEDTIMER = TRUE Th
 $End If
 
 
+$If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_UNIDATE = TRUE Then
+    $If UNIDATE_BM = UNDEFINED Then
+        $Let UNIDATE_BM = TRUE
+        Function UniDate$ (format$, userdate$)
+            'some basic documentation for formatting:
+            'dates sent via userdate$ should be in the standardized QB64 DATE$ format -- MM/DD/YYYY
+            'To customize your return date format, use the following syntax
+            'w = short weekday names.  (Mon, Tue, Wed, Thu, Fri, Sat, Sun)
+            'W = long weekday names.  (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday)
+            'E = Extended month names.  (January, February, March....)
+            'M = long month names.  (Jan, Feb, Mar...)
+            'm = short month names.  (01, 02, 03...)
+            'D = long day names.  (01st, 02nd, 03rd...)
+            'd = short day names.  (01, 02, 03...)
+            'Y or y (case insensitive) = year.  Number of Yy present determines the number of digits we return.
+            '       YY = 2-digit year
+            '       YYYY = 4 digit year
+            '       Y with any additional number of y's = 4 digit year by default, so a typo of YYYYY is the same as YYYY.
+            'Any other character is simply considered part of the desired output and faithfully carried over into the proper spot.
+            '      For example, "mm/dd/yyyy" gives us "02/10/2023" for Feb 10th, 2023.
+            '      Second example, "dd.mm.yyyy" gives us "10.02.2023" for the same date.
+            '      Third example, "dd EE YYYY" gives us "02 February 2023" for that same date.
+            'Note:  Extra digits of most of these codes are simply ignored for error proofing purposes, with only the initial code being accepted.
+            '      For example "mM YYYY" is actually processed as a simple "m YYYY".  The process won't mix short, long, or extended results.
+            '      Also for example, "m YY" is the *exact* same as "mm YY".
+            '      Feel free to use extra digits as you desire to help you keep track of positional spacing in your format string.
+            '      Even though "M D, yyyy" may process the same as "MMM DDDD, YYYY", the second may work better for you if you're trying to track
+            '             position of formatted objects.  (The output would be "Feb 10th, 2023", and those extra characters help hold that
+            '             positioning for us easily.)
+
+            'And, I think that's it.  Enjoy, guys!
+
+            Dim As String temp, m, d, y, firstchar, Day
+            Dim out$
+            Dim As Long MonthSet, DaySet, WeekdaySet, result, YearSet, mm, dd, yyyy, century, zerocentury
+
+            temp$ = userdate$
+            If temp$ = "" Then temp$ = Date$
+            m$ = Left$(temp$, 2)
+            d$ = Mid$(temp$, 4, 2)
+            y$ = Right$(temp$, 4)
+            temp$ = format$
+            Do
+                firstchar$ = Left$(temp$, 1)
+                Select Case firstchar$
+                    Case "E" 'extended month
+                        temp$ = Mid$(temp$, 2)
+                        If Not MonthSet Then
+                            MonthSet = -1
+                            Select Case Val(m$)
+                                Case 1: out$ = out$ + "January"
+                                Case 2: out$ = out$ + "February"
+                                Case 3: out$ = out$ + "March"
+                                Case 4: out$ = out$ + "April"
+                                Case 5: out$ = out$ + "May"
+                                Case 6: out$ = out$ + "June"
+                                Case 7: out$ = out$ + "July"
+                                Case 8: out$ = out$ + "August"
+                                Case 9: out$ = out$ + "September"
+                                Case 10: out$ = out$ + "October"
+                                Case 11: out$ = out$ + "November"
+                                Case 12: out$ = out$ + "December"
+                            End Select
+                        End If
+                    Case "M" 'long month
+                        temp$ = Mid$(temp$, 2)
+                        If Not MonthSet Then
+                            MonthSet = -1
+                            Select Case Val(m$)
+                                Case 1: out$ = out$ + "Jan"
+                                Case 2: out$ = out$ + "Feb"
+                                Case 3: out$ = out$ + "Mar"
+                                Case 4: out$ = out$ + "Apr"
+                                Case 5: out$ = out$ + "May"
+                                Case 6: out$ = out$ + "Jun"
+                                Case 7: out$ = out$ + "Jul"
+                                Case 8: out$ = out$ + "Aug"
+                                Case 9: out$ = out$ + "Sep"
+                                Case 10: out$ = out$ + "Oct"
+                                Case 11: out$ = out$ + "Nov"
+                                Case 12: out$ = out$ + "Dec"
+                            End Select
+                        End If
+                    Case "m" 'short month
+                        temp$ = Mid$(temp$, 2)
+                        If Not MonthSet Then
+                            MonthSet = -1
+                            Select Case Val(m$)
+                                Case 1: out$ = out$ + "01"
+                                Case 2: out$ = out$ + "02"
+                                Case 3: out$ = out$ + "03"
+                                Case 4: out$ = out$ + "04"
+                                Case 5: out$ = out$ + "05"
+                                Case 6: out$ = out$ + "06"
+                                Case 7: out$ = out$ + "07"
+                                Case 8: out$ = out$ + "08"
+                                Case 9: out$ = out$ + "09"
+                                Case 10: out$ = out$ + "10"
+                                Case 11: out$ = out$ + "11"
+                                Case 12: out$ = out$ + "12"
+                            End Select
+                        End If
+                    Case "D" 'long day
+                        temp$ = Mid$(temp$, 2)
+                        If Not DaySet Then
+                            DaySet = -1
+                            out$ = out$ + Right$("00" + _Trim$(d$), 2)
+                            Select Case Val(d$)
+                                Case 1, 11, 21, 31: out$ = out$ + "st"
+                                Case 2, 22: out$ = out$ + "nd"
+                                Case 3, 23: out$ = out$ + "rd"
+                                Case Else: out$ = out$ + "th"
+                            End Select
+                        End If
+                    Case "d" 'short day
+                        temp$ = Mid$(temp$, 2)
+                        If Not DaySet Then
+                            DaySet = -1
+                            out$ = out$ + Right$("00" + _Trim$(d$), 2)
+                        End If
+
+                    Case "W" 'long weekday
+                        temp$ = Mid$(temp$, 2)
+                        If Not WeekdaySet Then
+                            GoSub getday
+                            Select Case result
+                                Case 0: Day$ = "Saturday"
+                                Case 1: Day$ = "Sunday"
+                                Case 2: Day$ = "Monday"
+                                Case 3: Day$ = "Tuesday"
+                                Case 4: Day$ = "Wednesday"
+                                Case 5: Day$ = "Thursday"
+                                Case 6: Day$ = "Friday"
+                            End Select
+                            out$ = out$ + Day$
+                        End If
+                    Case "w" 'short weekday
+                        temp$ = Mid$(temp$, 2)
+                        If Not WeekdaySet Then
+                            GoSub getday
+                            Select Case result
+                                Case 0: Day$ = "Sat"
+                                Case 1: Day$ = "Sun"
+                                Case 2: Day$ = "Mon"
+                                Case 3: Day$ = "Tue"
+                                Case 4: Day$ = "Wed"
+                                Case 5: Day$ = "Thr"
+                                Case 6: Day$ = "Fri"
+                            End Select
+                            out$ = out$ + Day$
+                        End If
+                    Case "Y", "y" 'year
+                        If Not YearSet Then
+                            YearSet = -1
+                            If Left$(UCase$(temp$), 4) = "YYYY" Then
+                                temp$ = Mid$(temp$, 5)
+                                out$ = out$ + y$
+                            ElseIf Left$(UCase$(temp$), 2) = "YY" Then
+                                temp$ = Mid$(temp$, 3)
+                                out$ = out$ + Right$(y$, 2)
+                            Else
+                                temp$ = Mid$(temp$, 2)
+                                out$ = out$ + y$
+                            End If
+                        Else
+                            temp$ = Mid$(temp$, 2)
+                        End If
+                    Case Else 'seperator
+                        temp$ = Mid$(temp$, 2)
+                        out$ = out$ + firstchar$
+                End Select
+            Loop Until temp$ = ""
+            UniDate$ = out$
+            Exit Function
+
+            getday:
+            WeekdaySet = -1
+            'From Zeller's congruence: https://en.wikipedia.org/wiki/Zeller%27s_congruence
+            mm = Val(m$): dd = Val(d$): yyyy = Val(y$)
+            If mm < 3 Then mm = mm + 12: yyyy = yyyy - 1
+            century = yyyy Mod 100
+            zerocentury = yyyy \ 100
+            result = (dd + Int(13 * (mm + 1) / 5) + century + Int(century / 4) + Int(zerocentury / 4) + 5 * zerocentury) Mod 7
+            Return
+        End Function
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TRIANGLEFILL = TRUE Then
+    $If TRIANGLEFILL_BM = UNDEFINED Then
+        $Let TRIANGLEFILL_BM = TRUE
+        Sub TriangleFill (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+            $Checking:Off
+            Static a&, m As _MEM
+            If a& = 0 Then a& = _NewImage(1, 1, 32): m = _MemImage(a&)
+            _MemPut m, m.OFFSET, K
+            _MapTriangle _Seamless(0, 0)-(0, 0)-(0, 0), a& To(x1, y1)-(x2, y2)-(x3, y3)
+            $Checking:On
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_QUADFILL = TRUE Then
+    $If QUADFILL_BM = UNDEFINED Then
+        $Let QUADFILL_BM = TRUE
+        Sub QuadFill (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
+            TriangleFill x1, y1, x2, y2, x3, y3, K
+            TriangleFill x3, y3, x4, y4, x1, y1, K
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_CIRCLEFILL = TRUE Then
+    $If CIRCLEFILL_BM = UNDEFINED Then
+        $Let CIRCLEFILL_BM = TRUE
+        Sub CircleFill (CX As Integer, CY As Integer, R As Integer, C As _Unsigned Long)
+            ' CX = center x coordinate
+            ' CY = center y coordinate
+            '  R = radius
+            '  C = fill color
+            Dim Radius As Integer, RadiusError As Integer
+            Dim X As Integer, Y As Integer
+            Radius = Abs(R)
+            RadiusError = -Radius
+            X = Radius
+            Y = 0
+            If Radius = 0 Then PSet (CX, CY), C: Exit Sub
+            Line (CX - X, CY)-(CX + X, CY), C, BF
+            While X > Y
+                RadiusError = RadiusError + Y * 2 + 1
+                If RadiusError >= 0 Then
+                    If X <> Y + 1 Then
+                        Line (CX - Y, CY - X)-(CX + Y, CY - X), C, BF
+                        Line (CX - Y, CY + X)-(CX + Y, CY + X), C, BF
+                    End If
+                    X = X - 1
+                    RadiusError = RadiusError - X * 2
+                End If
+                Y = Y + 1
+                Line (CX - X, CY - Y)-(CX + X, CY - Y), C, BF
+                Line (CX - X, CY + Y)-(CX + X, CY + Y), C, BF
+            Wend
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSEFILL = TRUE Then
+    $If ELLIPSEFILL_BM = UNDEFINED Then
+        $Let ELLIPSEFILL_BM = TRUE
+        Sub EllipseFill (CX As Integer, CY As Integer, a As Integer, b As Integer, C As _Unsigned Long)
+            ' CX = center x coordinate
+            ' CY = center y coordinate
+            '  a = semimajor axis
+            '  b = semiminor axis
+            '  C = fill color
+            If a = 0 Or b = 0 Then Exit Sub
+            Dim h2 As _Integer64
+            Dim w2 As _Integer64
+            Dim h2w2 As _Integer64
+            Dim x As Integer
+            Dim y As Integer
+            w2 = a * a
+            h2 = b * b
+            h2w2 = h2 * w2
+            Line (CX - a, CY)-(CX + a, CY), C, BF
+            Do While y < b
+                y = y + 1
+                x = Sqr((h2w2 - y * y * w2) \ h2)
+                Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
+                Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
+            Loop
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSETILT = TRUE Then
+    $If ELLIPSETILT_BM = UNDEFINED Then
+        $Let ELLLIPSETILT_BM = TRUE
+        Sub EllipseTilt (CX, CY, a, b, ang, C As _Unsigned Long)
+            '  CX = center x coordinate
+            '  CY = center y coordinate
+            '  a = semimajor axis
+            '  b = semiminor axis
+            ' ang = clockwise orientation of semimajor axis in radians (0 default)
+            '  C = fill color
+            Dim As _Float k, i, j
+            For k = 0 To 6.283185307179586 + .025 Step .025
+                i = a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
+                j = -a * Cos(k) * Sin(ang) + b * Sin(k) * Cos(ang)
+                i = i + CX
+                j = -j + CY
+                If k <> 0 Then
+                    Line -(i, j), C
+                Else
+                    PSet (i, j), C
+                End If
+            Next
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSETILTFILL = TRUE Then
+    $If ELLIPSETILTFILL_BM = UNDEFINED Then
+        $Let ELLIPSETILTFILL_BM = TRUE
+        Sub EllipseTiltFill (destHandle&, CX, CY, a, b, ang, C As _Unsigned Long)
+            '  destHandle& = destination handle
+            '  CX = center x coordinate
+            '  CY = center y coordinate
+            '  a = semimajor axis
+            '  b = semiminor axis
+            ' ang = clockwise orientation of semimajor axis in radians (0 default)
+            '  C = fill color
+            Dim As Integer max, mx2, i, j, D, S
+            Dim As Long tef, lasti, lastj
+            Dim prc As _Unsigned Long
+            Dim As _Float k
+            D = _Dest: S = _Source
+            prc = _RGB32(255, 255, 255, 255)
+            If a > b Then max = a + 1 Else max = b + 1
+            mx2 = max + max
+            tef& = _NewImage(mx2, mx2)
+            _Dest tef&
+            _Source tef&
+            For k = 0 To 6.283185307179586 + .025 Step .025
+                i = max + a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
+                j = max + a * Cos(k) * Sin(ang) - b * Sin(k) * Cos(ang)
+                If k <> 0 Then
+                    Line (lasti, lastj)-(i, j), prc
+                Else
+                    PSet (i, j), prc
+                End If
+                lasti = i: lastj = j
+            Next
+            Dim xleft(mx2) As Integer, xright(mx2) As Integer, x As Integer, y As Integer
+            For y = 0 To mx2
+                x = 0
+                While Point(x, y) <> prc And x < mx2
+                    x = x + 1
+                Wend
+                xleft(y) = x
+                While Point(x, y) = prc And x < mx2
+                    x = x + 1
+                Wend
+                While Point(x, y) <> prc And x < mx2
+                    x = x + 1
+                Wend
+                If x = mx2 Then xright(y) = xleft(y) Else xright(y) = x
+            Next
+            _Dest destHandle&
+            For y = 0 To mx2
+                If xleft(y) <> mx2 Then Line (xleft(y) + CX - max, y + CY - max)-(xright(y) + CX - max, y + CY - max), C, BF
+            Next
+            _Dest D: _Dest S
+            _FreeImage tef&
+        End Sub
+    $End If
+$End If
+
+
+
+
+
 
 
 
