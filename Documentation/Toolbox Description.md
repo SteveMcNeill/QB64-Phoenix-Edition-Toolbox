@@ -5,7 +5,8 @@ List of $LET tags to enable and add various routines to your code:
 #### INCLUDE_MEM:  Enables all subs and functions related to MEM commands and functionality.  
         - INCLUDE_CONVERT_OFFSET  
         - INCLUDE_MEMSORT  
-        - INCLUDE_SCREEN: Enables all subs and functions related to SCREEN commands and functionality.  
+
+#### INCLUDE_SCREEN: Enables all subs and functions related to SCREEN commands and functionality.  
         - INCLUDE_BORDERWIDTH  
         - INCLUDE_SCREENMOVE  
         - INCLUDE_SCREENMOVE_MIDDLE  
