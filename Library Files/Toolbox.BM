@@ -843,6 +843,134 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_UNIDATE = TRUE Then
 $End If
 
 
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_DISPLAYIMAGE = TRUE Then
+    $If DISPLAYIMAGE_BM = UNDEFINED Then
+        $Let DISPLAYIMAGE_BM = TRUE
+        Sub DisplayImage (Image As Long, x As Integer, y As Integer, xscale As Single, yscale As Single, angle As Single, mode As _Byte)
+            'Image is the image handle which we use to reference our image.
+            'x,y is the X/Y coordinates where we want the image to be at on the screen.
+            'angle is the angle which we wish to rotate the image.
+            'mode determines HOW we place the image at point X,Y.
+            'Mode 0 we center the image at point X,Y
+            'Mode 1 we place the Top Left corner of oour image at point X,Y
+            'Mode 2 is Bottom Left
+            'Mode 3 is Top Right
+            'Mode 4 is Bottom Right
+
+            Dim As Integer px(3), py(3), w, h, w1, h1
+            Dim sinr As _Float, cosr As _Float, i As _Byte
+            Dim As Long x2, y2
+            w = _Width(Image): h = _Height(Image)
+            w1 = w * xscale: h1 = h * yscale
+            Select Case mode
+                Case 0 'center
+                    px(0) = -w1 / 2: py(0) = -h1 / 2: px(3) = w1 / 2: py(3) = -h1 / 2
+                    px(1) = -w1 / 2: py(1) = h1 / 2: px(2) = w1 / 2: py(2) = h1 / 2
+                Case 1 'top left
+                    px(0) = 0: py(0) = 0: px(3) = w1: py(3) = 0
+                    px(1) = 0: py(1) = h1: px(2) = w1: py(2) = h1
+                Case 2 'bottom left
+                    px(0) = 0: py(0) = -h1: px(3) = w1: py(3) = -h1
+                    px(1) = 0: py(1) = 0: px(2) = w1: py(2) = 0
+                Case 3 'top right
+                    px(0) = -w1: py(0) = 0: px(3) = 0: py(3) = 0
+                    px(1) = -w1: py(1) = h1: px(2) = 0: py(2) = h1
+                Case 4 'bottom right
+                    px(0) = -w1: py(0) = -h1: px(3) = 0: py(3) = -h1
+                    px(1) = -w1: py(1) = 0: px(2) = 0: py(2) = 0
+            End Select
+            sinr = Sin(angle / 57.2957795131): cosr = Cos(angle / 57.2957795131)
+            For i = 0 To 3
+                x2 = (px(i) * cosr + sinr * py(i)) + x: y2 = (py(i) * cosr - px(i) * sinr) + y
+                px(i) = x2: py(i) = y2
+            Next
+            _MapTriangle (0, 0)-(0, h - 1)-(w - 1, h - 1), Image To(px(0), py(0))-(px(1), py(1))-(px(2), py(2))
+            _MapTriangle (0, 0)-(w - 1, 0)-(w - 1, h - 1), Image To(px(0), py(0))-(px(3), py(3))-(px(2), py(2))
+        End Sub
+
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TEXTTOIMAGE = TRUE Then
+    $If TEXTTOIMAGE_BM = UNDEFINED Then
+        $Let TEXTTOIMAGE_BM = TRUE
+        Function TextToImage& (text$, font&, fc&, bfc&, mode As _Byte)
+            'text$ is the text that we wish to transform into an image.
+            'font& is the handle of the font we want to use.
+            'fc& is the color of the font we want to use.
+            'bfc& is the background color of the font.
+
+            'Mode 1 is print forwards
+            'Mode 2 is print backwards
+            'Mode 3 is print from top to bottom
+            'Mode 4 is print from bottom up
+            'Mode 0 got lost somewhere, but it's OK.  We check to see if our mode is < 1 or > 4 and compensate automatically if it is to make it one (default).
+            Dim As Long DC, BGC, D, F, T2Idown, T2Iright, w, h, i
+            Dim As Long TextToImage_temp, fx
+            Dim As String temp
+            If mode < 1 Or mode > 4 Then mode = 1
+            DC& = _DefaultColor: BGC& = _BackgroundColor
+            D = _Dest
+            F = _Font
+            T2Idown = CsrLin: T2Iright = Pos(0)
+            If font& <> 0 Then _Font font&
+            If mode < 3 Then
+                'print the text lengthwise
+                w& = _PrintWidth(text$): h& = _FontHeight
+            Else
+                'print the text vertically
+                For i = 1 To Len(text$)
+                    If w& < _PrintWidth(Mid$(text$, i, 1)) Then w& = _PrintWidth(Mid$(text$, i, 1))
+                Next
+                h& = _FontHeight * (Len(text$))
+            End If
+
+            TextToImage_temp& = _NewImage(w&, h&, 32)
+            TextToImage = TextToImage_temp&
+            _Dest TextToImage_temp&
+            If font& <> 0 Then _Font font&
+            Color fc&, bfc&
+
+            Select Case mode
+                Case 1
+                    'Print text forward
+                    _PrintString (0, 0), text$
+                Case 2
+                    'Print text backwards
+                    temp$ = ""
+                    For i = 0 To Len(text$) - 1
+                        temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
+                    Next
+                    _PrintString (0, 0), temp$
+                Case 3
+                    'Print text upwards
+                    'first lets reverse the text, so it's easy to place
+                    temp$ = ""
+                    For i = 0 To Len(text$) - 1
+                        temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
+                    Next
+                    'then put it where it belongs
+                    For i = 1 To Len(text$)
+                        fx = (w& - _PrintWidth(Mid$(temp$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
+                        _PrintString (fx, _FontHeight * (i - 1)), Mid$(temp$, i, 1)
+                    Next
+                Case 4
+                    'Print text downwards
+                    For i = 1 To Len(text$)
+                        fx = (w& - _PrintWidth(Mid$(text$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
+                        _PrintString (fx, _FontHeight * (i - 1)), Mid$(text$, i, 1)
+                    Next
+            End Select
+            _Dest D
+            Color DC&, BGC&
+            _Font F
+            Locate T2Idown, T2Iright
+        End Function
+
+    $End If
+$End If
+
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECT = TRUE Then
     $If ROUNDRECT_BM = UNDEFINED Then

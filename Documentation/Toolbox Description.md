@@ -4,12 +4,14 @@ List of $LET tags to enable and add various routines to your code:
 
 #### INCLUDE_IMAGE:  Enables all subs and functions related to IMAGE commands and functionality.
     INCLUDE_CIRCLEFILL
+    INCLUDE_DISPLAYIMAGE
     INCLUDE_ELLIPSEFILL
     INCLUDE_ELLIPSETILT
     INCLUDE_ELLIPSETILTFILL
     INCLUDE_QUADFILL
     INCLUDE_ROUNDRECT
     INCLUDE_ROUNDRECTFILL
+    INCLUDE_TEXTTOIMAGE
     INCLUDE_THICKCIRCLE
     INCLUDE_TRIANGLEFILL
     
@@ -43,6 +45,7 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_BORDERWIDTH: Enables the Function BorderWidth which is used to return the width of the programs borders to us.
     INCLUDE_CIRCLEFILL:  Enables the Sub CircleFill which generates a circle filled in the specified color.
     INCLUDE_CONVERT_OFFSET: Enables the Function ConvertOffset which is used to convert offsets to either LONG or INTEGER64 values as appropiate.
+    INCLUDE_DISPLAYIMAGE:  Enables the Sub DisplayImage which displays an image at x/y coordinates, scales it, and rotates it as desired.
     INCLUDE_ELLIPSEFILL:  Enables the Sub EllipseFill which generates an ellipse filled in the specified color.
     INCLUDE_ELLIPSETILT:  Enables the Sub EllipseTilt which generates an ellipse tiled by the specified angle.
     INCLUDE_ELLIPSETILTFILL:  Enables the Sub EllipseTileFill which generates an ellipse tiled by the specified angle, and filled in the specified color.
@@ -58,6 +61,7 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_SCROLLDOWN:  Enables the Sub ScrollDown which is used to scroll the screen down one line of characters.
     INCLUDE_SCROLLUP:  Enables the Sub ScrollUp which is used to scroll the screen up one line of characters.
     INCLUDE_SPEAK:  Windows-Only command which uses Powershell via Sub Speak to turn text into speech.
-    INCLUDE_THICKCIRCLE:    Enables the Sub ThickCircle which generates a circle with a multi-pixel border in the specified color.
+    INCLUDE_TEXTTOIMAGE:  Enables the Sub TextToImage which takes a given text string and converts it in an image which can be handled as any other image with _PUTIMAGE or DisplayImage.
+    INCLUDE_THICKCIRCLE:  Enables the Sub ThickCircle which generates a circle with a multi-pixel border in the specified color.
     INCLUDE_TIMESTAMP:  Enables the Function TimeStamp which returns an Unix-style timestamp.
     INCLUDE_TITLEBARHEIGHT: Enables the Function TitleBarHeight which is used to return the size of the program's titlebar, in pixels.
