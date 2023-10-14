@@ -8,6 +8,9 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_ELLIPSETILT
     INCLUDE_ELLIPSETILTFILL
     INCLUDE_QUADFILL
+    INCLUDE_ROUNDRECT
+    INCLUDE_ROUNDRECTFILL
+    INCLUDE_THICKCIRCLE
     INCLUDE_TRIANGLEFILL
     
 
@@ -48,10 +51,13 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_UNIDATE:  Enables the Function UniDate which transforms a given DATE$ to whatever Universal Date format is desired.
     INCLUDE_MEMSORT:  Enables the Function MemSort which is used to quickly sort arrays via the _MEM commands.
     INCLUDE_MOUSEBUTTONSTATUS:  Enables the Function MouseButtonStatus which returns enhanced values for mouse buttons and scroll wheels for programs.
+    INCLUDE_ROUNDRECT:  Enables the Sub RoundRect which generates a rounded rectangle.  
+    INCLUDE_ROUNDRECTFILL:  Enables the Sub RoundRectFill which generates a rounded rectangle filled in the specified color.
     INCLUDE_SCREENMOVE: Enables the Sub ScreenMove which allows the user to place the proram screen at absolute coordinates X, Y, without concern for border or titlebar adjustment.
     INCLUDE_SCREENMOVE_MIDDLE:  Enables the Sub ScreenMove Middle which places the program screen in the middle of the desktop, without concern for border or titlebar adjustment.
     INCLUDE_SCROLLDOWN:  Enables the Sub ScrollDown which is used to scroll the screen down one line of characters.
     INCLUDE_SCROLLUP:  Enables the Sub ScrollUp which is used to scroll the screen up one line of characters.
     INCLUDE_SPEAK:  Windows-Only command which uses Powershell via Sub Speak to turn text into speech.
+    INCLUDE_THICKCIRCLE:    Enables the Sub ThickCircle which generates a circle with a multi-pixel border in the specified color.
     INCLUDE_TIMESTAMP:  Enables the Function TimeStamp which returns an Unix-style timestamp.
     INCLUDE_TITLEBARHEIGHT: Enables the Function TitleBarHeight which is used to return the size of the program's titlebar, in pixels.

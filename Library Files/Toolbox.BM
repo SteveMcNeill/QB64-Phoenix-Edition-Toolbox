@@ -841,6 +841,94 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_UNIDATE = TRUE Then
 $End If
 
 
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECT = TRUE Then
+    $If ROUNDRECT_BM = UNDEFINED Then
+        $Let ROUNDRECT_BM = TRUE
+        Sub RoundRect (x As Single, y As Single, x1 As Single, y1 As Single, r As Single, c As _Unsigned Long)
+            Dim a As Single, b As Single, e As Single
+            'Draw the 4 straight lines first
+            Line (x, y + r)-(x, y1 - r), c
+            Line (x1, y + r)-(x1, y1 - r), c
+            Line (x + r, y)-(x1 - r, y), c
+            Line (x + r, y1)-(x1 - r, y1), c
+            a = r: b = 0: e = -a
+
+            'And then draw the rounded circle portions of the RoundRect
+            Do While a >= b
+                PSet (x + r - b, y + r - a), c: PSet (x1 - r + b, y + r - a), c
+                PSet (x + r - a, y + r - b), c: PSet (x1 - r + a, y + r - b), c
+                PSet (x + r - b, y1 - r + a), c: PSet (x1 - r + b, y1 - r + a), c
+                PSet (x + r - a, y1 - r + b), c: PSet (x1 - r + a, y1 - r + b), c
+                b = b + 1: e = e + b + b
+                If e > 0 Then a = a - 1: e = e - a - a
+            Loop
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECTFILL = TRUE Then
+    $If ROUNDRECTFILL_BM = UNDEFINED Then
+        $Let ROUNDRECTFILL_BM = TRUE
+        Sub RoundRectFill (x As Single, y As Single, x1 As Single, y1 As Single, r As Single, c As _Unsigned Long)
+            Dim a As Single, b As Single, e As Single
+            Line (x, y + r)-(x1, y1 - r), c, BF
+
+            a = r: b = 0: e = -a
+
+            Do While a >= b
+                Line (x + r - b, y + r - a)-(x1 - r + b, y + r - a), c, BF
+                Line (x + r - a, y + r - b)-(x1 - r + a, y + r - b), c, BF
+                Line (x + r - b, y1 - r + a)-(x1 - r + b, y1 - r + a), c, BF
+                Line (x + r - a, y1 - r + b)-(x1 - r + a, y1 - r + b), c, BF
+                b = b + 1: e = e + b + b
+                If e > 0 Then a = a - 1: e = e - a - a
+            Loop
+        End Sub
+    $End If
+$End If
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKCIRCLE = TRUE Then
+    $If THICKCIRCLE_BM = UNDEFINED Then
+        $Let THICKCIRCLE_BM = TRUE
+        Sub ThickCircle (x As Single, y As Single, radius As Single, thickness As Single, colour As _Unsigned Long)
+            Dim rp As Single, rm As Single, rp2 As Single, rm2 As Single
+            Dim sm As Single, rpi2 As Single, rmi2 As Single, sp As Single
+            Dim i As Single
+
+            rp = radius + thickness / 2
+            rm = radius - thickness / 2
+            rp2 = rp ^ 2
+            rm2 = rm ^ 2
+            For i = -rp To -rm Step .2
+                rpi2 = rp2 - i ^ 2
+                sp = Sqr(rpi2)
+                Line (x + i, y)-(x + i, y + sp), colour, BF
+                Line (x + i, y)-(x + i, y - sp), colour, BF
+            Next
+            For i = -rm To 0 Step .2
+                rpi2 = rp2 - i ^ 2
+                rmi2 = rm2 - i ^ 2
+                sm = Sqr(rmi2)
+                sp = Sqr(rpi2)
+                Line (x + i, y + sm)-(x + i, y + sp), colour, BF
+                Line (x - i, y + sm)-(x - i, y + sp), colour, BF
+                Line (x + i, y - sm)-(x + i, y - sp), colour, BF
+                Line (x - i, y - sm)-(x - i, y - sp), colour, BF
+            Next
+            For i = rm To rp Step .2
+                rpi2 = rp2 - i ^ 2
+                sp = Sqr(rpi2)
+                Line (x + i, y)-(x + i, y + sp), colour, BF
+                Line (x + i, y)-(x + i, y - sp), colour, BF
+            Next
+        End Sub
+    $End If
+$End If
+
+
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TRIANGLEFILL = TRUE Then
     $If TRIANGLEFILL_BM = UNDEFINED Then
         $Let TRIANGLEFILL_BM = TRUE
