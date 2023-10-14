@@ -2,6 +2,9 @@ A list of the DECLARE LIBRARY routines which are included, which an user might w
 
 #### INCLUDE_ALL:  Includes all DECLARE LIBRARY subs and functions.
 
+#### INCLUDE_FILE:  Includes all DECLARE LIBRARY subs and functions.
+	Note:  direntry.h is ued for the Function GetFileList, but it has no subs or functions which an user would normally find necessary to call or interact with. 
+
 #### INCLUDE_GLUT:  Includes all DECLARE LIBRARY routines that come from glut.
 	INCLUDE_GLUTGET
 	INCLUDE_GLUTRESHAPEWINDOW

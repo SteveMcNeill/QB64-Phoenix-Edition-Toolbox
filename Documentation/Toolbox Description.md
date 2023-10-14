@@ -2,6 +2,9 @@ List of $LET tags to enable and add various routines to your code:
 
 #### INCLUDE_ALL:  Enables all subs and functions inside the toolbox.
 
+#### INCLUDE_FILE:  Enables all subs and functions related to FILE commands and functionality.
+    INCLUDE_GETFILELIST
+
 #### INCLUDE_IMAGE:  Enables all subs and functions related to IMAGE commands and functionality.
     INCLUDE_CIRCLEFILL
     INCLUDE_DISPLAYIMAGE
@@ -51,6 +54,7 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_ELLIPSETILTFILL:  Enables the Sub EllipseTileFill which generates an ellipse tiled by the specified angle, and filled in the specified color.
     INCLUDE_EXTENDEDTIMER:  Enables the Function ExtendedTimer which is used to get system time without worrying over midnight issues.
     INCLUDE_GETDAY:  Enables the Function GetDay$ which is used to return the Day from any given MM/DD/YYYY date.
+    INCLUDE_GETFILELIST:  Enables the Function GetFileList (Path$) which returns a listing of all files and directories to a set string array called FileList().
     INCLUDE_UNIDATE:  Enables the Function UniDate which transforms a given DATE$ to whatever Universal Date format is desired.
     INCLUDE_MEMSORT:  Enables the Function MemSort which is used to quickly sort arrays via the _MEM commands.
     INCLUDE_MOUSEBUTTONSTATUS:  Enables the Function MouseButtonStatus which returns enhanced values for mouse buttons and scroll wheels for programs.
