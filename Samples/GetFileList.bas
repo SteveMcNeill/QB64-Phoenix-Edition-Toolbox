@@ -1,3 +1,8 @@
+'Sample for SUB GetFileList (SearchDirectory AS STRING)
+'created 10;14/2023 by Steve!(tm)
+'Only one paramter for this function, and that requires the path which we want to get our file listing from.
+
+
 $Let INCLUDE_ALL = TRUE
 '$INCLUDE:'..\Library Files\Toolbox.BI'
 
