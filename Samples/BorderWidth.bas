@@ -1,5 +1,5 @@
 'Sample for Function BorderWidth
-'created 10;14/2023 by Steve!(tm)
+'created 10/14/2023 by Steve!(tm)
 'No paramets for this simple function.  Just call it, get its result.
 
 

@@ -521,7 +521,7 @@ $End If
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETDAY = TRUE Then
     $If GETDAY_BM = UNDEFINED Then
             $Let GETDAY_BM = TRUE
-            $Let CHECKDAYFORMAT = TRUE
+            $Let INCLUDE_CHECKDAYFORMAT = TRUE
             Function GetDay& (Day As String) 'use MM/DD/YYYY format
             If CheckDayFormat(Day$) = 0 Then GetDay = 0: Exit Function
             GetDay = Val(Mid$(Day, 4, 2))
@@ -533,7 +533,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETMONTH = TRUE Then
     $If GETMONTH_BM = UNDEFINED Then
             $Let GETMONTH_BM = TRUE
             Function GetMonth& (Day As String) 'use MM/DD/YYYY format
-            $Let CHECKDAYFORMAT = TRUE
+            $Let INCLUDE_CHECKDAYFORMAT = TRUE
             If CheckDayFormat(Day$) = 0 Then GetMonth = 0: Exit Function
             GetMonth = Val(Left$(Day, 2))
             End Function
@@ -544,7 +544,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETYEAR = TRUE Then
     $If GETYEAR_BM = UNDEFINED Then
             $Let GETYEAR_BM = TRUE
             Function GetYear& (Day As String) 'use MM/DD/YYYY format
-            $Let CHECKDAYFORMAT = TRUE
+            $Let INCLUDE_CHECKDAYFORMAT = TRUE
             If CheckDayFormat(Day$) = 0 Then GetYear = 0: Exit Function
             GetYear = Val(Right$(Day, 4))
             End Function
@@ -555,7 +555,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETWEEKDAYNAME = TRUE T
     $If GETWEEKDAYNAME_BM = UNDEFINED Then
             $Let GETDAY_BM = TRUE
             Function GetWeekDayName$ (Day$) 'use MM/DD/YYYY format
-            $Let GETWEEKDAY = TRUE
+            $Let INCLUDE_GETWEEKDAY = TRUE
             Dim result As Long
             result = GetWeekDay(Day$)
             Select Case result
@@ -1146,6 +1146,18 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKCIRCLE = TRUE The
 $End If
 
 
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_QUADFILL = TRUE Then
+    $If QUADFILL_BM = UNDEFINED Then
+            $Let QUADFILL_BM = TRUE
+            $Let INCLUDE_TRIANLGEFILL = TRUE
+            Sub QuadFill (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
+            TriangleFill x1, y1, x2, y2, x3, y3, K
+            TriangleFill x3, y3, x4, y4, x1, y1, K
+            End Sub
+    $End If
+$End If
+
+
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TRIANGLEFILL = TRUE Then
     $If TRIANGLEFILL_BM = UNDEFINED Then
             $Let TRIANGLEFILL_BM = TRUE
@@ -1156,17 +1168,6 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TRIANGLEFILL = TRUE Th
             _MemPut m, m.OFFSET, K
             _MapTriangle _Seamless(0, 0)-(0, 0)-(0, 0), a& To(x1, y1)-(x2, y2)-(x3, y3)
             $Checking:On
-            End Sub
-    $End If
-$End If
-
-
-$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_QUADFILL = TRUE Then
-    $If QUADFILL_BM = UNDEFINED Then
-            $Let QUADFILL_BM = TRUE
-            Sub QuadFill (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
-            TriangleFill x1, y1, x2, y2, x3, y3, K
-            TriangleFill x3, y3, x4, y4, x1, y1, K
             End Sub
     $End If
 $End If
