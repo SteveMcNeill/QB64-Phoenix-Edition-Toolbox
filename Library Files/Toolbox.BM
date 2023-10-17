@@ -1062,14 +1062,19 @@ $End If
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECT = TRUE Then
     $If ROUNDRECT_BM = UNDEFINED Then
             $Let ROUNDRECT_BM = TRUE
-            Sub RoundRect (x As Single, y As Single, x1 As Single, y1 As Single, r As Single, c As _Unsigned Long)
-            Dim a As Single, b As Single, e As Single
+            Sub RoundRect (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
+            Dim as long a, b, e, r
+
+            r = radius
+            IF r > ABS(y - y1) \ 2 then r = ABS(y - y1) \ 2 'radius no larger than half the height of the circle
+
             'Draw the 4 straight lines first
             Line (x, y + r)-(x, y1 - r), c
             Line (x1, y + r)-(x1, y1 - r), c
             Line (x + r, y)-(x1 - r, y), c
             Line (x + r, y1)-(x1 - r, y1), c
             a = r: b = 0: e = -a
+
 
             'And then draw the rounded circle portions of the RoundRect
             Do While a >= b
@@ -1088,8 +1093,12 @@ $End If
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECTFILL = TRUE Then
     $If ROUNDRECTFILL_BM = UNDEFINED Then
             $Let ROUNDRECTFILL_BM = TRUE
-            Sub RoundRectFill (x As Single, y As Single, x1 As Single, y1 As Single, r As Single, c As _Unsigned Long)
-            Dim a As Single, b As Single, e As Single
+            Sub RoundRectFill (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
+            Dim as long a, b, e, r
+
+            r = radius
+            IF r > ABS(y - y1) \ 2 then r = ABS(y - y1) \ 2 'radius no larger than half the height of the circle
+
             Line (x, y + r)-(x1, y1 - r), c, BF
 
             a = r: b = 0: e = -a
