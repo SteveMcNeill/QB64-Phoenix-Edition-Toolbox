@@ -35,7 +35,7 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_TITLEBARHEIGHT
 
 ##### INCLUDE_SOUND:  Enables all subs and functions related to SOUND commands and functionality.
-    INCLUDE_SPEAK
+    INCLUDE_SPEECH
 
 #### INCLUDE_TIME:  Enables all subs and functions related to TIME and DATE commands and functionality.
     INCLUDE_CHECKDAYFORMAT
@@ -75,7 +75,7 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_SCREENMOVE_MIDDLE:  Enables the Sub ScreenMove Middle which places the program screen in the middle of the desktop, without concern for border or titlebar adjustment.
     INCLUDE_SCROLLDOWN:  Enables the Sub ScrollDown which is used to scroll the screen down one line of characters.
     INCLUDE_SCROLLUP:  Enables the Sub ScrollUp which is used to scroll the screen up one line of characters.
-    INCLUDE_SPEAK:  Windows-Only command which uses Powershell via Sub Speak to turn text into speech.
+    INCLUDE_SPEECH:  Multiple Windows-Only commands which use Powershell via Sub Speak to turn text into speech.
     INCLUDE_TEXTTOIMAGE:  Enables the Sub TextToImage which takes a given text string and converts it in an image which can be handled as any other image with _PUTIMAGE or DisplayImage.
     INCLUDE_THICKCIRCLE:  Enables the Sub ThickCircle which generates a circle with a multi-pixel border in the specified color.
     INCLUDE_TIMESTAMP:  Enables the Function TimeStamp which returns an Unix-style timestamp.
