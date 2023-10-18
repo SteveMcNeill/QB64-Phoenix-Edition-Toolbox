@@ -33,7 +33,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_MEMSORT = TRUE Then
         $Let MEMSORT_BM = TRUE
         Sub MemSort (m As _MEM)
             Dim i As _Unsigned Long
-            Dim As Long DataType, i1, gap, swapped, false
+            Dim As Long DataType, i1, gap, swapped
             $If 64BIT Then
                 Dim ES As _Integer64, EC As _Integer64
             $Else
@@ -204,7 +204,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_MEMSORT = TRUE Then
                             End If
                             i = i + 1
                         Loop Until i + gap > EC
-                    Loop Until gap = 1 And swapped = false
+                    Loop Until gap = 1 And swapped = 0
                 Case 8 '_INTEGER64
                     Dim T8a As _Integer64, T8b As _Integer64
                     gap = EC

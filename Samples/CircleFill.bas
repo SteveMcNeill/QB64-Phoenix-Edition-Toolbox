@@ -1,5 +1,5 @@
 'Sample for SUB CircleFill (CX AS INTEGER, CY AS INTEGER, R AS INTEGER, C AS _UNSIGNED LONG)
-'created 10;14/2023 by Steve!(tm)
+'created 10/14/2023 by Steve!(tm)
 '4 paramters for this routine which are very simple:
 'CX -- Center X.  This is the center x position of our circle.
 'CY -- Center Y.  This is the center y position of our circle.
