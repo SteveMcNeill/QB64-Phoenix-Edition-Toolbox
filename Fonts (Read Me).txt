@@ -1,0 +1,5 @@
+All the fonts listed in the Fonts directory have been tested to make certain that they maintian a few basic rules:
+1) They must be MONOSPACE, which is the standard for data alignment.
+2) They must have the whole rane of 256 ASCII characters available for use, by default.  (With _MapUnicode, we can set these to whatever we want them to be, but we should at least have a standard toolset for starting out!)
+
+Steve Recommended:  SourceCodePro-SemiBold comes across crisp and clean on my PC.  The characters are unique and easy to distinguish, and being able to set a custom size works excellently with these poor old tired eyes which find the default _FONT 16 just to be too small to read happily on my laptop computer.
