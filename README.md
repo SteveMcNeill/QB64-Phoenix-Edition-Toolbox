@@ -6,12 +6,12 @@
 
  Once QB64PE is up and running, add the following to the top of your code: 
  ```
- $INCLUDE:'<your extracted folder path here>\Library Fiels\Toolbox.BI'
+ $INCLUDE:'<your extracted folder path here>\Library Files\Toolbox.BI'
  ```
 
  And add the following to the end of your code:
  ```
- $INCLUDE:'<your extracted folder path here>\Library Fiels\Toolbox.BI'
+ $INCLUDE:'<your extracted folder path here>\Library Files\Toolbox.BI'
  ```
 
  Once you've $INCLUDED the library into your QB64PE program, the only thing left is to tell QB64 which parts of the library you wish to use.
