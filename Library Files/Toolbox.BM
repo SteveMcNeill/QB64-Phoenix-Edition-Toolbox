@@ -10,56 +10,136 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_EMBEDED_FONTS = TRUE Then
 
             Function ReturnFont& (name$, size As Long, style$)
             Dim As Long sz, f
+            Dim As Long ExtraBold, Bold, SemiBold, Italic, Regular, Light, Medium, Blacke
             Dim n$, s$
             n$ = _Trim$(UCase$(name$))
             s$ = _Trim$(UCase$(style$))
             sz = size: If sz < 4 Or sz > 256 Then Exit Function 'some minor size checking for extreme font sizes
 
+            If InStr(s$, "BOLD") Then 'check for the weight of the font
+            If InStr(s$, "EXTRA BOLD") Or InStr(s$, "EXTRABOLD") Then
+            ExtraBold = -1
+            ElseIf InStr(s$, "SEMI BOLD") Or InStr(s$, "SEMIBOLD") Then
+            SemiBold = -1
+            Else
+            Bold = -1
+            End If
+            ElseIf InStr(s$, "BLACK") Then
+            Blacke = -1
+            ElseIf InStr(s$, "REGULAR") Then
+            Regular = -1
+            ElseIf InStr(s$, "LIGHT") Then
+            Light = -1
+            ElseIf InStr(s$, "MEDIUM") Then
+            Medium = -1
+            End If
+            If InStr(s$, "ITALIC") Then Italic = -1 'check for italics
+            If s$ = "" Then Regular = -1 'check for a blank entry
+
         $If EMBED_COURIER_NEW = TRUE Then
                 If n$ = "COURIER NEW" Then
-                Select Case s$
-                Case "", "NORMAL", "REGULAR", "NONE", "NO"
-                f = _LoadFont(ReadCourArray$, sz, "monospace,memory")
-                Case "BOLD"
-                f = _LoadFont(ReadCourbArray$, sz, "monospace,memory")
-                Case "ITALIC"
-                f = _LoadFont(ReadCouriArray$, sz, "monospace,memory")
-                Case "BOLD,ITALIC", "ITALIC,BOLD", "BOLD, ITALIC", "ITALIC, BOLD", "BOLDITALIC", "ITALICBOLD"
+                'only 4 choices here: regular, bold, italics, bold italics
+                If Bold And Italic Then
                 f = _LoadFont(ReadCourbiArray$, sz, "monospace,memory")
-                End Select
+                ElseIf Bold Then
+                f = _LoadFont(ReadCourbArray$, sz, "monospace,memory")
+                ElseIf Italic Then
+                f = _LoadFont(ReadCouriArray$, sz, "monospace,memory")
+                ElseIf Regular Then
+                f = _LoadFont(ReadCourArray$, sz, "monospace,memory")
+                End If
                 End If
         $End If
+
         $If EMBED_CONSOLA = TRUE Then
                 If n$ = "CONSOLA" Then
-                Select Case s$
-                Case "", "NORMAL", "REGULAR", "NONE", "NO"
-                f = _LoadFont(ReadConsolaArray$, sz, "monospace,memory")
-                Case "BOLD"
-                f = _LoadFont(ReadConsolabArray$, sz, "monospace,memory")
-                Case "ITALIC"
-                f = _LoadFont(ReadConsolaiArray$, sz, "monospace,memory")
-                Case "BOLD,ITALIC", "ITALIC,BOLD", "BOLD, ITALIC", "ITALIC, BOLD", "BOLDITALIC", "ITALICBOLD"
+                'Same as above -- only 4 choices here: regular, bold, italics, bold italics
+                If Bold And Italic Then
                 f = _LoadFont(ReadConsolabiArray$, sz, "monospace,memory")
-                End Select
+                ElseIf Bold Then
+                f = _LoadFont(ReadConsolabArray$, sz, "monospace,memory")
+                ElseIf Italic Then
+                f = _LoadFont(ReadConsolaiArray$, sz, "monospace,memory")
+                ElseIf Regular Then
+                f = _LoadFont(ReadConsolaArray$, sz, "monospace,memory")
+                End If
                 End If
         $End If
 
         $If EMBED_DEJA_VU_SANS_MONO = TRUE Then
+                'only a single version of Deja Vu exists to embed.  This one is easy!
                 If left$(n$,7) = "DEJA VU" Then
                 f = _LoadFont(ReadDejaVuArray$, sz, "monospace,memory")
                 End If
         $End If
 
+        $If EMBED_JULIA_MONO = TRUE Then
+                If n$ = "JULIA MONO" Then
+                'All sorts of options here!
+                If Italic Then 'italic style fonts
+                If Blacke Then
+                f = _LoadFont(ReadJMBlIArray$, sz, "monospace,memory")
+                ElseIf Bold Then
+                f = _LoadFont(ReadJMBIArray$, sz, "monospace,memory")
+                ElseIf ExtraBold Then
+                f = _LoadFont(ReadJMEBIArray$, sz, "monospace,memory")
+                ElseIf Light Then
+                f = _LoadFont(ReadJMLIArray$, sz, "monospace,memory")
+                ElseIf Medium Then
+                f = _LoadFont(ReadJMMIArray$, sz, "monospace,memory")
+                Else
+                f = _LoadFont(ReadJMRIArray$, sz, "monospace,memory")
+                End If
+                Else 'non-italic style fonts
+                If Blacke Then
+                f = _LoadFont(ReadJMBLArray$, sz, "monospace,memory")
+                ElseIf Bold Then
+                f = _LoadFont(ReadJMBArray$, sz, "monospace,memory")
+                ElseIf ExtraBold Then
+                f = _LoadFont(ReadJMEBArray$, sz, "monospace,memory")
+                ElseIf Light Then
+                f = _LoadFont(ReadJMLArray$, sz, "monospace,memory")
+                ElseIf Medium Then
+                f = _LoadFont(ReadJMMArray$, sz, "monospace,memory")
+                Else
+                f = _LoadFont(ReadJMRArray$, sz, "monospace,memory")
+                End If
+                End If
+                End If
+        $End If
+
         $If EMBED_SOURCE_CODE_PRO = TRUE Then
                 If n$ = "SOURCE CODE PRO" Then
-                Select Case s$
-                Case "", "NORMAL", "REGULAR", "NONE", "NO"
-                'f = _LoadFont(ReadSCPArray$, sz, "monospace,memory")
-                Case "MEDIUM"
-                f = _LoadFont(ReadSCPMArray$, sz, "monospace,memory")
-                Case "MEDIUMITALIC", "MEDIUM ITALIC", "MEDIUM, ITALIC", "ITALICMEDIUM", "ITALIC MEDIUM", "ITALIC, MEDIUM", "MEDIUM,ITALIC", "ITALIC,MEDIUM"
+                'All sorts of options here!
+                If Italic Then 'italic style fonts
+                If Blacke Then
+                ' f = _LoadFont(ReadJMBlIArray$, sz, "monospace,memory")
+                ElseIf Bold Then
+                'f = _LoadFont(ReadJMBIArray$, sz, "monospace,memory")
+                ElseIf ExtraBold Then
+                'f = _LoadFont(ReadJMEBIArray$, sz, "monospace,memory")
+                ElseIf Light Then
+                'f = _LoadFont(ReadJMLIArray$, sz, "monospace,memory")
+                ElseIf Medium Then
                 f = _LoadFont(ReadSCPMIArray$, sz, "monospace,memory")
-                End Select
+                Else
+                'f = _LoadFont(ReadJMRIArray$, sz, "monospace,memory")
+                End If
+                Else 'non-italic style fonts
+                If Blacke Then
+                'f = _LoadFont(ReadJMBLArray$, sz, "monospace,memory")
+                ElseIf Bold Then
+                'f = _LoadFont(ReadJMBArray$, sz, "monospace,memory")
+                ElseIf ExtraBold Then
+                'f = _LoadFont(ReadJMEBArray$, sz, "monospace,memory")
+                ElseIf Light Then
+                'f = _LoadFont(ReadJMLArray$, sz, "monospace,memory")
+                ElseIf Medium Then
+                f = _LoadFont(ReadSCPMArray$, sz, "monospace,memory")
+                Else
+                f = _LoadFont(ReadSCPRArray$, sz, "monospace,memory")
+                End If
+                End If
                 End If
         $End If
 
@@ -83,9 +163,26 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_EMBEDED_FONTS = TRUE Then
                 '$INCLUDE:'./Embeded Fonts/DejaVu.bm'
         $End If
 
+        $If EMBED_JULIA_MONO = TRUE Then
+                '$INCLUDE:'./Embeded Fonts/JMBL.bm'
+                '$INCLUDE:'./Embeded Fonts/JMBLI.bm'
+                '$INCLUDE:'./Embeded Fonts/JMB.bm'
+                '$INCLUDE:'./Embeded Fonts/JMBI.bm'
+                '$INCLUDE:'./Embeded Fonts/JMEB.bm'
+                '$INCLUDE:'./Embeded Fonts/JMEBI.bm'
+                '$INCLUDE:'./Embeded Fonts/JML.bm'
+                '$INCLUDE:'./Embeded Fonts/JMLI.bm'
+                '$INCLUDE:'./Embeded Fonts/JMRI.bm'
+                '$INCLUDE:'./Embeded Fonts/JMR.bm'
+                '$INCLUDE:'./Embeded Fonts/JMM.bm'
+                '$INCLUDE:'./Embeded Fonts/JMMI.bm'
+        $End If
+
+
         $If EMBED_SOURCE_CODE_PRO = TRUE Then
                 '$INCLUDE:'./Embeded Fonts/SCPM.bm'
                 '$INCLUDE:'./Embeded Fonts/SCPMI.bm'
+                '$INCLUDE:'./Embeded Fonts/SCPR.bm'
         $End If
     $End If
 $End If
