@@ -2,6 +2,16 @@ List of $LET tags to enable and add various routines to your code:
 
 #### INCLUDE_ALL:  Enables all subs and functions inside the toolbox.
 
+#### INCLUDE_EMBEDED_FONTS:  Enables the embedding of various fonts via Function ReturnFont&.
+    Function ReturnFont& (name$, size As Long, style$)
+    EMBED_COURIER_NEW (REGULAR, BOLD, ITALIC, BOLD ITALIC)
+    EMBED_CONSOLA (REGULAR, BOLD, ITALIC, BOLD ITALIC)
+    EMBED_DEJA_VU_SANS
+    EMBED_JULIA_MONO (BLACK, BLACK ITALIC, BOLD, BOLD ITALIC, EXTRA BOLD ITALIC, SEMIBOLD ITALIC, REGULAR, LIGHT, MEDIUM, MEDIUM ITALIC, LIGHT, LIGHT ITALIC)
+    EMBED_LUCON
+    EMBED_SOURCE_CODE_PRO (BLACK, BLACK ITALIC, BOLD, BOLD ITALIC, EXTRA BOLD ITALIC, SEMIBOLD ITALIC, REGULAR, LIGHT, MEDIUM, MEDIUM ITALIC, LIGHT, LIGHT ITALIC)
+    EMBED_UNIFONT (REGULAR, UNICODE)    
+
 #### INCLUDE_FILE:  Enables all subs and functions related to FILE commands and functionality.
     INCLUDE_GETFILELIST
 

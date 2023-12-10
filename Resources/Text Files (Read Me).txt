@@ -1,0 +1,5 @@
+There's always need to run various tests on things in any programming language.  Tests to see how quickly something can parse, or how quickly something can be read in and converted to something else.
+
+The text files included here are ones that I've found exceptionally useful for these type purposes in the past:
+1) The Scrabble Word Dictionary.  (This version is out of date, but it does what it's supposed to here.)
+2) The King James Bible.  (Royalty free book, in text format, which nobody anywhere can claim copyright to.  It's probably the MOST public domain item in existence, and it works great for any sort of benchmarking or testing.)
