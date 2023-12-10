@@ -26,6 +26,7 @@ Preview of all the fonts which we can make use of, and their various styles:
 ![Font Preview](Embeded_Fonts_Preview.png)
 
 Note that the various fonts have various styles associated with them, as illustrated above:
+```
     COURIER NEW:  (REGULAR, BOLD, ITALIC, BOLD ITALIC)
     CONSOLA:  (REGULAR, BOLD, ITALIC, BOLD ITALIC)
     DEJA VU SANS: ()
@@ -33,6 +34,7 @@ Note that the various fonts have various styles associated with them, as illustr
     LUCON: ()
     SOURCE CODE PRO: (BLACK, BLACK ITALIC, BOLD, BOLD ITALIC, EXTRA BOLD ITALIC, SEMIBOLD ITALIC, REGULAR, LIGHT, MEDIUM, MEDIUM ITALIC, LIGHT, LIGHT ITALIC)
     UNIFONT: (REGULAR, UNICODE)
+```
 
 Be certain to view the sample [Embedding Font Example.bas](..\Samples\Embedding%32Font%32Example.bas) for a working example of all these various examples in play.  Honestly, it's not as complicated as it may as first seem.  The general process is as simple as:
 
