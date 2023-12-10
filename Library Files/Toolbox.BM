@@ -245,7 +245,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_EMBEDED_FONTS = TRUE Then
     $End If
 $End If
 
-$If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_CONVERT_OFFSET = TRUE Then
+$If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVERT_OFFSET = TRUE Then
     $If CONVERTOFFSET_BM = UNDEFINED Then
             $Let CONVERTOFFSET_BM = TRUE
             Function ConvertOffset&& (value As _Offset)
@@ -266,6 +266,171 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_CONVERT_OFFSET = TRUE Th
             End Function
     $End If
 $End If
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVERT_TO_UTF8 = TRUE Then
+    $If UTF8_BM = UNDEFINED Then
+            $Let UTF8_BM = TRUE
+            Function Ansi_To_Utf8$ (text$)
+            Dim chi&, unicode&, temp$
+            For chi& = 1 To Len(text$)
+            unicode& = _MapUnicode(Asc(text$, chi&)) '--- get ANSI char code, reset Unicode ---
+            If unicode& = 0 Then unicode& = 65533 'replacement character
+            temp$ = temp$ + Unicode_To_UTF8$(unicode&)
+            Next chi&
+            Ansi_To_Utf8$ = temp$
+            End Function
+
+            Function Unicode_To_UTF8$ (unicode&)
+            Dim uc&, first%, remain%, conti%, temp$
+            If unicode& < 128 Then '--- standard ASCII (0-127) goes as is ---
+            Unicode_To_UTF8$ = Chr$(unicode&)
+            Exit Function
+            Else '--- encode the Unicode into UTF-8 notation ---
+            temp$ = "": uc& = unicode& 'avoid argument side effect
+            first% = &B10000000: remain% = 63
+            Do
+            first% = &B10000000 Or (first% \ 2): remain% = (remain% \ 2)
+            conti% = &B10000000 Or (uc& And &B00111111): uc& = uc& \ 64
+            temp$ = Chr$(conti%) + temp$
+            If uc& <= remain% Then
+            first% = (first% Or uc&): uc& = 0
+            End If
+            Loop Until uc& = 0
+            Unicode_To_UTF8$ = Chr$(first%) + temp$
+            End If
+            End Function
+
+    $End If
+$End If
+
+
+
+$If INCLUDE_ALL = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVERT_BASE64 = TRUE Then
+    $If BASE64_BM = UNDEFINED Then
+            $Let BASE64_BM = TRUE
+        $If WIN Then
+                Declare Dynamic Library "Crypt32"
+                Function CryptBinaryToStringA& (Compressed$, Byval numElements&, Byval format&, Byval buffer As _Offset, length&)
+                Function CryptStringToBinaryA& (s$, Byval length&, Byval flags&, Byval r As _Offset, ret_length&, skip&, flag2&)
+                End Declare
+
+                Function To64$ (original$)
+                Dim l&, temp$
+                If CryptBinaryToStringA(original$, Len(original$), &H40000001&, 0, l&) Then temp$ = Space$(l&) Else Exit Function
+                If CryptBinaryToStringA(original$, Len(original$), &H40000001&, _Offset(temp$), l&) Then To64$ = temp$
+                End Function
+
+                Function From64$ (base64$)
+                Dim l&, temp$
+                If CryptStringToBinaryA(base64$, Len(base64$), 6&, 0, l&, 0&, 0&) Then temp$ = Space$(l&) Else Exit Function
+                If CryptStringToBinaryA(base64$, Len(base64$), 6&, _Offset(temp$), l&, 0&, 0&) Then From64$ = temp$
+                End Function
+        $Else
+                'Note that these two versions were shamelessly stolen from A740g and taken directly from his work.
+                'Orignial code and library can be found on the forums here: https://qb64phoenix.com/forum/showthread.php?tid=2184
+
+
+                ' Converts a normal string or binary data to a base64 string
+                Function To64$ (s As String)
+                Const BASE64_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+                Dim srcSize As _Unsigned Long: srcSize = Len(s)
+                Dim srcSize3rem As _Unsigned Long: srcSize3rem = srcSize Mod 3
+                Dim srcSize3mul As _Unsigned Long: srcSize3mul = srcSize - srcSize3rem
+                Dim buffer As String: buffer = Space$(((srcSize + 2) \ 3) * 4) ' preallocate complete buffer
+                Dim j As _Unsigned Long: j = 1
+
+                Dim i As _Unsigned Long: For i = 1 To srcSize3mul Step 3
+                Dim char1 As _Unsigned _Byte: char1 = Asc(s, i)
+                Dim char2 As _Unsigned _Byte: char2 = Asc(s, i + 1)
+                Dim char3 As _Unsigned _Byte: char3 = Asc(s, i + 2)
+
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShR(char1, 2)))
+                j = j + 1
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL((char1 And 3), 4) Or _ShR(char2, 4)))
+                j = j + 1
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL((char2 And 15), 2) Or _ShR(char3, 6)))
+                j = j + 1
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (char3 And 63))
+                j = j + 1
+                Next i
+
+                ' Add padding
+                If srcSize3rem > 0 Then
+                char1 = Asc(s, i)
+
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShR(char1, 2)))
+                j = j + 1
+
+                If srcSize3rem = 1 Then
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL(char1 And 3, 4)))
+                j = j + 1
+                Asc(buffer, j) = 61 ' "="
+                j = j + 1
+                Asc(buffer, j) = 61 ' "="
+                Else ' srcSize3rem = 2
+                char2 = Asc(s, i + 1)
+
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL((char1 And 3), 4) Or _ShR(char2, 4)))
+                j = j + 1
+                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL(char2 And 15, 2)))
+                j = j + 1
+                Asc(buffer, j) = 61 ' "="
+                End If
+                End If
+
+                To64$ = buffer
+                End Function
+
+                ' Converts a base64 string to a normal string or binary data
+                Function From64$ (s As String)
+                Dim srcSize As _Unsigned Long: srcSize = Len(s)
+                Dim buffer As String: buffer = Space$((srcSize \ 4) * 3) ' preallocate complete buffer
+                Dim j As _Unsigned Long: j = 1
+                Dim As _Unsigned _Byte index, char1, char2, char3, char4
+
+                Dim i As _Unsigned Long: For i = 1 To srcSize Step 4
+                index = Asc(s, i): GoSub find_index: char1 = index
+                index = Asc(s, i + 1): GoSub find_index: char2 = index
+                index = Asc(s, i + 2): GoSub find_index: char3 = index
+                index = Asc(s, i + 3): GoSub find_index: char4 = index
+
+                Asc(buffer, j) = _ShL(char1, 2) Or _ShR(char2, 4)
+                j = j + 1
+                Asc(buffer, j) = _ShL(char2 And 15, 4) Or _ShR(char3, 2)
+                j = j + 1
+                Asc(buffer, j) = _ShL(char3 And 3, 6) Or char4
+                j = j + 1
+                Next i
+
+                ' Remove padding
+                If Right$(s, 2) = "==" Then
+                buffer = Left$(buffer, Len(buffer) - 2)
+                ElseIf Right$(s, 1) = "=" Then
+                buffer = Left$(buffer, Len(buffer) - 1)
+                End If
+
+                From64$ = buffer
+                Exit Function
+
+                find_index:
+                If index >= 65 And index <= 90 Then
+                index = index - 65
+                ElseIf index >= 97 And index <= 122 Then
+                index = index - 97 + 26
+                ElseIf index >= 48 And index <= 57 Then
+                index = index - 48 + 52
+                ElseIf index = 43 Then
+                index = 62
+                ElseIf index = 47 Then
+                index = 63
+                End If
+                Return
+                End Function
+        $End If
+    $End If
+$End If
+
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_MEMSORT = TRUE Then
