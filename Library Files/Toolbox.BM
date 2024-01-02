@@ -4,247 +4,6 @@
 'Let above is only enabled to allow the auto-formatting and syntax checking to run.
 'Be certain to disable if before saving or using this file.
 
-$If INCLUDE_ALL = TRUE OR INCLUDE_EMBEDED_FONTS = TRUE Then
-    $If RETURNFONT_BM = UNDEFINED Then
-            $Let RETURNFONT_BM = TRUE
-
-            Function ReturnFont& (name$, size As Long, style$)
-            Dim As Long sz, f
-            Dim As Long ExtraBold, Bold, SemiBold, Italic, Regular, Light, Medium, Blacke, ExtraLight
-            Dim As Long UniCode
-            Dim n$, s$
-            n$ = _Trim$(UCase$(name$))
-            s$ = _Trim$(UCase$(style$))
-            sz = size: If sz < 4 Or sz > 256 Then Exit Function 'some minor size checking for extreme font sizes
-
-            If InStr(s$, "BOLD") Then 'check for the weight of the font
-            If InStr(s$, "EXTRA BOLD") Or InStr(s$, "EXTRABOLD") Then
-            ExtraBold = -1
-            ElseIf InStr(s$, "SEMI BOLD") Or InStr(s$, "SEMIBOLD") Then
-            SemiBold = -1
-            Else
-            Bold = -1
-            End If
-            ElseIf InStr(s$, "BLACK") Then
-            Blacke = -1
-            ElseIf InStr(s$, "REGULAR") Then
-            Regular = -1
-            ElseIf InStr(s$, "EXTRA LIGHT") Then
-            ExtraLight = -1
-            ElseIf InStr(s$, "LIGHT") Then
-            Light = -1
-            ElseIf InStr(s$, "MEDIUM") Then
-            Medium = -1
-            End If
-            If InStr(s$, "ITALIC") Then Italic = -1 'check for italics
-            If InStr(s$, "UNICODE") Then UniCode = -1 'check for the unicode flag for _UPRINTSTRING only
-            If s$ = "" Then Regular = -1 'check for a blank entry
-
-        $If EMBED_COURIER_NEW = TRUE Then
-                If n$ = "COURIER NEW" Then
-                'only 4 choices here: regular, bold, italics, bold italics
-                If Bold And Italic Then
-                f = _LoadFont(ReadCourbiArray$, sz, "monospace,memory")
-                ElseIf Bold Then
-                f = _LoadFont(ReadCourbArray$, sz, "monospace,memory")
-                ElseIf Italic Then
-                f = _LoadFont(ReadCouriArray$, sz, "monospace,memory")
-                ElseIf Regular Then
-                f = _LoadFont(ReadCourArray$, sz, "monospace,memory")
-                End If
-                End If
-        $End If
-
-        $If EMBED_CONSOLA = TRUE Then
-                If n$ = "CONSOLA" Then
-                'Same as above -- only 4 choices here: regular, bold, italics, bold italics
-                If Bold And Italic Then
-                f = _LoadFont(ReadConsolabiArray$, sz, "monospace,memory")
-                ElseIf Bold Then
-                f = _LoadFont(ReadConsolabArray$, sz, "monospace,memory")
-                ElseIf Italic Then
-                f = _LoadFont(ReadConsolaiArray$, sz, "monospace,memory")
-                ElseIf Regular Then
-                f = _LoadFont(ReadConsolaArray$, sz, "monospace,memory")
-                End If
-                End If
-        $End If
-
-        $If EMBED_DEJA_VU_SANS_MONO = TRUE Then
-                'only a single version of Deja Vu exists to embed.  This one is easy!
-                If left$(n$,7) = "DEJA VU" Then
-                f = _LoadFont(ReadDejaVuArray$, sz, "monospace,memory")
-                End If
-        $End If
-
-        $If EMBED_JULIA_MONO = TRUE Then
-                If n$ = "JULIA MONO" Then
-                'All sorts of options here!
-                If Italic Then 'italic style fonts
-                If Blacke Then
-                f = _LoadFont(ReadJMBlIArray$, sz, "monospace,memory")
-                ElseIf Bold Then
-                f = _LoadFont(ReadJMBIArray$, sz, "monospace,memory")
-                ElseIf ExtraBold Then
-                f = _LoadFont(ReadJMEBIArray$, sz, "monospace,memory")
-                ElseIf SemiBold Then
-                f = _LoadFont(ReadJMSBIArray$, sz, "monospace,memory")
-                ElseIf Light Then
-                f = _LoadFont(ReadJMLIArray$, sz, "monospace,memory")
-                ElseIf Medium Then
-                f = _LoadFont(ReadJMMIArray$, sz, "monospace,memory")
-                Else
-                f = _LoadFont(ReadJMRIArray$, sz, "monospace,memory")
-                End If
-                Else 'non-italic style fonts
-                If Blacke Then
-                f = _LoadFont(ReadJMBLArray$, sz, "monospace,memory")
-                ElseIf Bold Then
-                f = _LoadFont(ReadJMBArray$, sz, "monospace,memory")
-                ElseIf ExtraBold Then
-                f = _LoadFont(ReadJMEBArray$, sz, "monospace,memory")
-                ElseIf SemiBold Then
-                f = _LoadFont(ReadJMSBArray$, sz, "monospace,memory")
-                ElseIf Light Then
-                f = _LoadFont(ReadJMLArray$, sz, "monospace,memory")
-                ElseIf Medium Then
-                f = _LoadFont(ReadJMMArray$, sz, "monospace,memory")
-                Else
-                f = _LoadFont(ReadJMRArray$, sz, "monospace,memory")
-                End If
-                End If
-                End If
-        $End If
-
-        $If EMBED_LUCON = TRUE Then
-                'only a single version of Deja Vu exists to embed.  This one is easy!
-                If left$(n$,5) = "LUCON" Then
-                f = _LoadFont(ReadLuconArray$, sz, "monospace,memory")
-                End If
-        $End If
-
-        $If EMBED_SOURCE_CODE_PRO = TRUE Then
-                If n$ = "SOURCE CODE PRO" Then
-                'All sorts of options here!
-                If Italic Then 'italic style fonts
-                If Blacke Then
-                f = _LoadFont(ReadSCPBLIArray$, sz, "monospace,memory")
-                ElseIf Bold Then
-                f = _LoadFont(ReadSCPBIArray$, sz, "monospace,memory")
-                ElseIf ExtraBold Then
-                f = _LoadFont(ReadSCPEBIArray$, sz, "monospace,memory")
-                ElseIf SemiBold Then
-                f = _LoadFont(ReadSCPSBIArray$, sz, "monospace,memory")
-                ElseIf ExtraLight Then
-                f = _LoadFont(ReadSCPELIArray$, sz, "monospace,memory")
-                ElseIf Light Then
-                f = _LoadFont(ReadSCPLIArray$, sz, "monospace,memory")
-                ElseIf Medium Then
-                f = _LoadFont(ReadSCPMIArray$, sz, "monospace,memory")
-                Else
-                f = _LoadFont(ReadSCPIArray$, sz, "monospace,memory")
-                End If
-                Else 'non-italic style fonts
-                If Blacke Then
-                f = _LoadFont(ReadSCPBLArray$, sz, "monospace,memory")
-                ElseIf Bold Then
-                f = _LoadFont(ReadSCPBArray$, sz, "monospace,memory")
-                ElseIf ExtraBold Then
-                f = _LoadFont(ReadSCPEBArray$, sz, "monospace,memory")
-                ElseIf SemiBold Then
-                f = _LoadFont(ReadSCPSBArray$, sz, "monospace,memory")
-                ElseIf ExtraLight Then
-                f = _LoadFont(ReadSCPELArray$, sz, "monospace,memory")
-                ElseIf Light Then
-                f = _LoadFont(ReadSCPLArray$, sz, "monospace,memory")
-                ElseIf Medium Then
-                f = _LoadFont(ReadSCPMArray$, sz, "monospace,memory")
-                Else
-                f = _LoadFont(ReadSCPRArray$, sz, "monospace,memory")
-                End If
-                End If
-                End If
-        $End If
-
-        $If EMBED_UNIFONT = TRUE Then
-                'only a single version of Deja Vu exists to embed.  This one is easy!
-                If left$(n$,7) = "UNIFONT" Then
-                If UniCode then
-                f = _LoadFont(ReadUniFontArray$, sz, "monospace,memory, unicode")
-                Else
-                f = _LoadFont(ReadUniFontArray$, sz, "monospace,memory")
-                End If
-                End If
-        $End If
-
-
-            ReturnFont& = f
-            End Function
-
-        $If EMBED_COURIER_NEW = TRUE Then
-                '$INCLUDE:'./Embeded Fonts/cour.bm'
-                '$INCLUDE:'./Embeded Fonts/courb.bm'
-                '$INCLUDE:'./Embeded Fonts/couri.bm'
-                '$INCLUDE:'./Embeded Fonts/courbi.bm'
-        $End If
-
-        $If EMBED_CONSOLA = TRUE Then
-                '$INCLUDE:'./Embeded Fonts/consola.bm'
-                '$INCLUDE:'./Embeded Fonts/consolab.bm'
-                '$INCLUDE:'./Embeded Fonts/consolai.bm'
-                '$INCLUDE:'./Embeded Fonts/consolabi.bm'
-        $End If
-        $If EMBED_DEJA_VU_SANS_MONO = TRUE Then
-                '$INCLUDE:'./Embeded Fonts/DejaVu.bm'
-        $End If
-
-        $If EMBED_JULIA_MONO = TRUE Then
-                '$INCLUDE:'./Embeded Fonts/JMBL.bm'
-                '$INCLUDE:'./Embeded Fonts/JMBLI.bm'
-                '$INCLUDE:'./Embeded Fonts/JMB.bm'
-                '$INCLUDE:'./Embeded Fonts/JMBI.bm'
-                '$INCLUDE:'./Embeded Fonts/JMEB.bm'
-                '$INCLUDE:'./Embeded Fonts/JMEBI.bm'
-                '$INCLUDE:'./Embeded Fonts/JMSB.bm'
-                '$INCLUDE:'./Embeded Fonts/JMSBI.bm'
-                '$INCLUDE:'./Embeded Fonts/JML.bm'
-                '$INCLUDE:'./Embeded Fonts/JMLI.bm'
-                '$INCLUDE:'./Embeded Fonts/JMRI.bm'
-                '$INCLUDE:'./Embeded Fonts/JMR.bm'
-                '$INCLUDE:'./Embeded Fonts/JMM.bm'
-                '$INCLUDE:'./Embeded Fonts/JMMI.bm'
-        $End If
-
-        $If EMBED_LUCON = TRUE Then
-                '$INCLUDE:'./Embeded Fonts/LUCON.bm'
-        $End If
-
-        $If EMBED_SOURCE_CODE_PRO = TRUE Then
-                '$INCLUDE:'./Embeded Fonts/SCPBL.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPBLI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPB.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPBI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPEB.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPEBI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPEL.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPELI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPL.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPLI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPM.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPMI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPR.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPSBI.bm'
-                '$INCLUDE:'./Embeded Fonts/SCPSB.bm'
-        $End If
-
-        $If EMBED_UNIFONT = TRUE Then
-                '$INCLUDE:'./Embeded Fonts/UNIFONT.bm'
-        $End If
-
-    $End If
-$End If
-
 $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVERT_OFFSET = TRUE Then
     $If CONVERTOFFSET_BM = UNDEFINED Then
             $Let CONVERTOFFSET_BM = TRUE
@@ -1567,6 +1326,30 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECTFILL = TRUE T
     $End If
 $End If
 
+$If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKLINE = TRUE Then
+    $If THICKLINE_BM = UNDEFINED Then
+            $Let THICKLINE_BM = TRUE
+            Sub ThickLine (x1, y1, x2, y2, thickness, colour As _Unsigned Long)
+            'orientation of line is set in the middle of line thickness
+            Static tempimage As Long, m As _MEM
+            Dim ht As _Float: ht = thickness / 2 'half thickness
+            Dim As _Float cang, ta, tb, tax1, tay1, tax2, tay2, tax3, tay3, tax4, tay4
+            If tempimage = 0 Then tempimage = _NewImage(1, 1, 32): m = _MemImage(tempimage)
+            $Checking:Off
+            _MemPut m, m.OFFSET, colour
+            $Checking:On
+            cang = _Atan2((y2 - y1), (x2 - x1)) 'get the angle from x1,y1 to x2,y2
+            ta = cang + _Pi(.5)
+            tb = ta + _Pi
+            tax1 = x1 + ht * Cos(ta): tay1 = y1 + ht * Sin(ta)
+            tax4 = x1 + ht * Cos(tb): tay4 = y1 + ht * Sin(tb)
+            tax2 = x2 + ht * Cos(ta): tay2 = y2 + ht * Sin(ta)
+            tax3 = x2 + ht * Cos(tb): tay3 = y2 + ht * Sin(tb)
+            _MapTriangle (0, 0)-(0, 0)-(0, 0), tempimage To(tax1, tay1)-(tax2, tay2)-(tax4, tay4)
+            _MapTriangle (0, 0)-(0, 0)-(0, 0), tempimage To(tax2, tay2)-(tax3, tay3)-(tax4, tay4)
+            End Sub
+    $End If
+$End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKCIRCLE = TRUE Then
     $If THICKCIRCLE_BM = UNDEFINED Then

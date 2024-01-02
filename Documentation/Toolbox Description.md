@@ -5,17 +5,7 @@ List of $LET tags to enable and add various routines to your code:
 #### INCLUDE_CONVERT:  Enables the embedding of all subs and functions which perform various conversions back and forth for us.
     INCLUDE_CONVERT_BASE64
     INCLUDE_CONVERT_OFFSET
-    INCLUDE_CONVERT_TO_UTF8
-
-#### INCLUDE_EMBEDED_FONTS:  Enables the embedding of various fonts via Function ReturnFont&.
-    Function ReturnFont& (name$, size As Long, style$)
-    EMBED_COURIER_NEW (REGULAR, BOLD, ITALIC, BOLD ITALIC)
-    EMBED_CONSOLA (REGULAR, BOLD, ITALIC, BOLD ITALIC)
-    EMBED_DEJA_VU_SANS
-    EMBED_JULIA_MONO (BLACK, BLACK ITALIC, BOLD, BOLD ITALIC, EXTRA BOLD ITALIC, SEMIBOLD ITALIC, REGULAR, LIGHT, MEDIUM, MEDIUM ITALIC, LIGHT, LIGHT ITALIC)
-    EMBED_LUCON
-    EMBED_SOURCE_CODE_PRO (BLACK, BLACK ITALIC, BOLD, BOLD ITALIC, EXTRA BOLD ITALIC, SEMIBOLD ITALIC, REGULAR, LIGHT, MEDIUM, MEDIUM ITALIC, LIGHT, LIGHT ITALIC)
-    EMBED_UNIFONT (REGULAR, UNICODE)    
+    INCLUDE_CONVERT_TO_UTF8  
 
 #### INCLUDE_FILE:  Enables all subs and functions related to FILE commands and functionality.
     INCLUDE_GETFILELIST
@@ -31,6 +21,7 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_ROUNDRECTFILL
     INCLUDE_TEXTTOIMAGE
     INCLUDE_THICKCIRCLE
+    INCLUDE_THICKLINE
     INCLUDE_TRIANGLEFILL
     
 
@@ -95,6 +86,7 @@ List of $LET tags to enable and add various routines to your code:
     INCLUDE_SPEECH:  Multiple Windows-Only commands which use Powershell via Sub Speak to turn text into speech.
     INCLUDE_TEXTTOIMAGE:  Enables the Sub TextToImage which takes a given text string and converts it in an image which can be handled as any other image with _PUTIMAGE or DisplayImage.
     INCLUDE_THICKCIRCLE:  Enables the Sub ThickCircle which generates a circle with a multi-pixel border in the specified color.
+    INCLUDE_THICKLINE:  Enables the Sub ThickLine which generates a multi-pixel wide line going from point (x1, y1) to point (x2, y2) in the specified color.
     INCLUDE_TIMESTAMP:  Enables the Function TimeStamp which returns an Unix-style timestamp.
     INCLUDE_TITLEBARHEIGHT: Enables the Function TitleBarHeight which is used to return the size of the program's titlebar, in pixels.
     INCLUDE_UNIDATE:  Enables the Function UniDate which transforms a given DATE$ to whatever Universal Date format is desired.
