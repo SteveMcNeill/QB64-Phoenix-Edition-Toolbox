@@ -1,208 +1,78 @@
-'$Let INCLUDE_ALL = TRUE
-''$INCLUDE:'Toolbox.BI'
-'Option _Explicit
+$Let INCLUDE_ALL = TRUE
+'$Include:'Toolbox.BI'
+Option _Explicit
 'Let above is only enabled to allow the auto-formatting and syntax checking to run.
 'Be certain to disable if before saving or using this file.
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVERT_OFFSET = TRUE Then
     $If CONVERTOFFSET_BM = UNDEFINED Then
-            $Let CONVERTOFFSET_BM = TRUE
-            Function ConvertOffset&& (value As _Offset)
+        $Let CONVERTOFFSET_BM = TRUE
+        Function ConvertOffset&& (value As _Offset)
             $Checking:Off
             Dim m As _MEM 'Define a memblock
             m = _Mem(value) 'Point it to use value
-        $If 64BIT Then
+            $If 64BIT Then
                 'On 64 bit OSes, an OFFSET is 8 bytes in size.  We need an Integer64 to store it.
                 Dim temp As _Integer64
-        $Else
+            $Else
                 'However, on 32 bit OSes, an OFFSET is only 4 bytes.  We need to put it into a LONG variable first
                 dim temp as long
-        $End If
+            $End If
             _MemGet m, m.OFFSET, temp 'Like this
             _MemFree m 'Free the memblock
             $Checking:On
             ConvertOffset = temp
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVERT_TO_UTF8 = TRUE Then
     $If UTF8_BM = UNDEFINED Then
-            $Let UTF8_BM = TRUE
-            Function Ansi_To_Utf8$ (text$)
+        $Let UTF8_BM = TRUE
+        Function Ansi_To_Utf8$ (text$)
             Dim chi&, unicode&, temp$
             For chi& = 1 To Len(text$)
-            unicode& = _MapUnicode(Asc(text$, chi&)) '--- get ANSI char code, reset Unicode ---
-            If unicode& = 0 Then unicode& = 65533 'replacement character
-            temp$ = temp$ + Unicode_To_UTF8$(unicode&)
+                unicode& = _MapUnicode(Asc(text$, chi&)) '--- get ANSI char code, reset Unicode ---
+                If unicode& = 0 Then unicode& = 65533 'replacement character
+                temp$ = temp$ + Unicode_To_UTF8$(unicode&)
             Next chi&
             Ansi_To_Utf8$ = temp$
-            End Function
+        End Function
 
-            Function Unicode_To_UTF8$ (unicode&)
+        Function Unicode_To_UTF8$ (unicode&)
             Dim uc&, first%, remain%, conti%, temp$
             If unicode& < 128 Then '--- standard ASCII (0-127) goes as is ---
-            Unicode_To_UTF8$ = Chr$(unicode&)
-            Exit Function
-            Else '--- encode the Unicode into UTF-8 notation ---
-            temp$ = "": uc& = unicode& 'avoid argument side effect
-            first% = &B10000000: remain% = 63
-            Do
-            first% = &B10000000 Or (first% \ 2): remain% = (remain% \ 2)
-            conti% = &B10000000 Or (uc& And &B00111111): uc& = uc& \ 64
-            temp$ = Chr$(conti%) + temp$
-            If uc& <= remain% Then
-            first% = (first% Or uc&): uc& = 0
-            End If
-            Loop Until uc& = 0
-            Unicode_To_UTF8$ = Chr$(first%) + temp$
-            End If
-            End Function
-
-    $End If
-$End If
-
-
-
-$If INCLUDE_ALL = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVERT_BASE64 = TRUE Then
-    $If BASE64_BM = UNDEFINED Then
-            $Let BASE64_BM = TRUE
-        $If WIN Then
-                Declare Dynamic Library "Crypt32"
-                Function CryptBinaryToStringA& (Compressed$, Byval numElements&, Byval format&, Byval buffer As _Offset, length&)
-                Function CryptStringToBinaryA& (s$, Byval length&, Byval flags&, Byval r As _Offset, ret_length&, skip&, flag2&)
-                End Declare
-
-                Function To64$ (original$)
-                Dim l&, temp$
-                If CryptBinaryToStringA(original$, Len(original$), &H40000001&, 0, l&) Then temp$ = Space$(l&) Else Exit Function
-                If CryptBinaryToStringA(original$, Len(original$), &H40000001&, _Offset(temp$), l&) Then To64$ = temp$
-                End Function
-
-                Function From64$ (base64$)
-                Dim l&, temp$
-                If CryptStringToBinaryA(base64$, Len(base64$), 6&, 0, l&, 0&, 0&) Then temp$ = Space$(l&) Else Exit Function
-                If CryptStringToBinaryA(base64$, Len(base64$), 6&, _Offset(temp$), l&, 0&, 0&) Then From64$ = temp$
-                End Function
-        $Else
-                'Note that these two versions were shamelessly stolen from A740g and taken directly from his work.
-                'Orignial code and library can be found on the forums here: https://qb64phoenix.com/forum/showthread.php?tid=2184
-
-
-                ' Converts a normal string or binary data to a base64 string
-                Function To64$ (s As String)
-                Const BASE64_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
-                Dim srcSize As _Unsigned Long: srcSize = Len(s)
-                Dim srcSize3rem As _Unsigned Long: srcSize3rem = srcSize Mod 3
-                Dim srcSize3mul As _Unsigned Long: srcSize3mul = srcSize - srcSize3rem
-                Dim buffer As String: buffer = Space$(((srcSize + 2) \ 3) * 4) ' preallocate complete buffer
-                Dim j As _Unsigned Long: j = 1
-
-                Dim i As _Unsigned Long: For i = 1 To srcSize3mul Step 3
-                Dim char1 As _Unsigned _Byte: char1 = Asc(s, i)
-                Dim char2 As _Unsigned _Byte: char2 = Asc(s, i + 1)
-                Dim char3 As _Unsigned _Byte: char3 = Asc(s, i + 2)
-
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShR(char1, 2)))
-                j = j + 1
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL((char1 And 3), 4) Or _ShR(char2, 4)))
-                j = j + 1
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL((char2 And 15), 2) Or _ShR(char3, 6)))
-                j = j + 1
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (char3 And 63))
-                j = j + 1
-                Next i
-
-                ' Add padding
-                If srcSize3rem > 0 Then
-                char1 = Asc(s, i)
-
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShR(char1, 2)))
-                j = j + 1
-
-                If srcSize3rem = 1 Then
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL(char1 And 3, 4)))
-                j = j + 1
-                Asc(buffer, j) = 61 ' "="
-                j = j + 1
-                Asc(buffer, j) = 61 ' "="
-                Else ' srcSize3rem = 2
-                char2 = Asc(s, i + 1)
-
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL((char1 And 3), 4) Or _ShR(char2, 4)))
-                j = j + 1
-                Asc(buffer, j) = Asc(BASE64_CHARACTERS, 1 + (_ShL(char2 And 15, 2)))
-                j = j + 1
-                Asc(buffer, j) = 61 ' "="
-                End If
-                End If
-
-                To64$ = buffer
-                End Function
-
-                ' Converts a base64 string to a normal string or binary data
-                Function From64$ (s As String)
-                Dim srcSize As _Unsigned Long: srcSize = Len(s)
-                Dim buffer As String: buffer = Space$((srcSize \ 4) * 3) ' preallocate complete buffer
-                Dim j As _Unsigned Long: j = 1
-                Dim As _Unsigned _Byte index, char1, char2, char3, char4
-
-                Dim i As _Unsigned Long: For i = 1 To srcSize Step 4
-                index = Asc(s, i): GoSub find_index: char1 = index
-                index = Asc(s, i + 1): GoSub find_index: char2 = index
-                index = Asc(s, i + 2): GoSub find_index: char3 = index
-                index = Asc(s, i + 3): GoSub find_index: char4 = index
-
-                Asc(buffer, j) = _ShL(char1, 2) Or _ShR(char2, 4)
-                j = j + 1
-                Asc(buffer, j) = _ShL(char2 And 15, 4) Or _ShR(char3, 2)
-                j = j + 1
-                Asc(buffer, j) = _ShL(char3 And 3, 6) Or char4
-                j = j + 1
-                Next i
-
-                ' Remove padding
-                If Right$(s, 2) = "==" Then
-                buffer = Left$(buffer, Len(buffer) - 2)
-                ElseIf Right$(s, 1) = "=" Then
-                buffer = Left$(buffer, Len(buffer) - 1)
-                End If
-
-                From64$ = buffer
+                Unicode_To_UTF8$ = Chr$(unicode&)
                 Exit Function
-
-                find_index:
-                If index >= 65 And index <= 90 Then
-                index = index - 65
-                ElseIf index >= 97 And index <= 122 Then
-                index = index - 97 + 26
-                ElseIf index >= 48 And index <= 57 Then
-                index = index - 48 + 52
-                ElseIf index = 43 Then
-                index = 62
-                ElseIf index = 47 Then
-                index = 63
-                End If
-                Return
-                End Function
-        $End If
+            Else '--- encode the Unicode into UTF-8 notation ---
+                temp$ = "": uc& = unicode& 'avoid argument side effect
+                first% = &B10000000: remain% = 63
+                Do
+                    first% = &B10000000 Or (first% \ 2): remain% = (remain% \ 2)
+                    conti% = &B10000000 Or (uc& And &B00111111): uc& = uc& \ 64
+                    temp$ = Chr$(conti%) + temp$
+                    If uc& <= remain% Then
+                        first% = (first% Or uc&): uc& = 0
+                    End If
+                Loop Until uc& = 0
+                Unicode_To_UTF8$ = Chr$(first%) + temp$
+            End If
+        End Function
     $End If
 $End If
-
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_MEMSORT = TRUE Then
     $If MEMSORT_BM = UNDEFINED Then
-            $Let MEMSORT_BM = TRUE
-            Sub MemSort (m As _MEM)
+        $Let MEMSORT_BM = TRUE
+        Sub MemSort (m As _MEM)
             Dim i As _Unsigned Long
             Dim As Long DataType, i1, gap, swapped
-        $If 64BIT Then
+            $If 64BIT Then
                 Dim ES As _Integer64, EC As _Integer64
-        $Else
+            $Else
                 DIM ES AS LONG, EC AS LONG
-        $End If
+            $End If
 
             If Not m.TYPE And 65536 Then Exit Sub 'We won't work without an array
             If m.TYPE And 1024 Then DataType = 10
@@ -224,262 +94,262 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_MEMSORT = TRUE Then
             Dim o As _Offset, o1 As _Offset, counter As _Unsigned Long
 
             Select Case DataType
-            Case 1 'BYTE
-            Dim temp1(-128 To 127) As _Unsigned Long
-            Dim t1 As _Byte
-            i = 0
-            Do
-            _MemGet m, m.OFFSET + i, t1
-            temp1(t1) = temp1(t1) + 1
-            i = i + 1
-            Loop Until i > EC
-            i1 = -128
-            Do
-            Do Until temp1(i1) = 0
-            _MemPut m, m.OFFSET + counter, i1 As _BYTE
-            counter = counter + 1
-            temp1(i1) = temp1(i1) - 1
-            If counter > EC Then Exit Sub
-            Loop
-            i1 = i1 + 1
-            Loop Until i1 > 127
-            Case 2: 'INTEGER
-            Dim temp2(-32768 To 32767) As _Unsigned Long
-            Dim t2 As Integer
-            i = 0
-            Do
-            _MemGet m, m.OFFSET + i * 2, t2
-            temp2(t2) = temp2(t2) + 1
-            i = i + 1
-            Loop Until i > EC
-            i1 = -32768
-            Do
-            Do Until temp2(i1) = 0
-            _MemPut m, m.OFFSET + counter * 2, i1 As INTEGER
-            counter = counter + 1
-            temp2(i1) = temp2(i1) - 1
-            If counter > EC Then Exit Sub
-            Loop
-            i1 = i1 + 1
-            Loop Until i1 > 32767
-            Case 3 'SINGLE
-            Dim T3a As Single, T3b As Single
-            gap = EC
-            Do
-            gap = 10 * gap \ 13
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * 4
-            o1 = m.OFFSET + (i + gap) * 4
-            If _MemGet(m, o, Single) > _MemGet(m, o1, Single) Then
-            _MemGet m, o1, T3a
-            _MemGet m, o, T3b
-            _MemPut m, o1, T3b
-            _MemPut m, o, T3a
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
-            Case 4 'LONG
-            Dim T4a As Long, T4b As Long
-            gap = EC
-            Do
-            gap = 10 * gap \ 13
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * 4
-            o1 = m.OFFSET + (i + gap) * 4
-            If _MemGet(m, o, Long) > _MemGet(m, o1, Long) Then
-            _MemGet m, o1, T4a
-            _MemGet m, o, T4b
-            _MemPut m, o1, T4b
-            _MemPut m, o, T4a
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
-            Case 5 'DOUBLE
-            Dim T5a As Double, T5b As Double
-            gap = EC
-            Do
-            gap = 10 * gap \ 13
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * 8
-            o1 = m.OFFSET + (i + gap) * 8
-            If _MemGet(m, o, Double) > _MemGet(m, o1, Double) Then
-            _MemGet m, o1, T5a
-            _MemGet m, o, T5b
-            _MemPut m, o1, T5b
-            _MemPut m, o, T5a
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
-            Case 6 ' _FLOAT
-            Dim T6a As _Float, T6b As _Float
-            gap = EC
-            Do
-            gap = 10 * gap \ 13
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * 32
-            o1 = m.OFFSET + (i + gap) * 32
-            If _MemGet(m, o, _Float) > _MemGet(m, o1, _Float) Then
-            _MemGet m, o1, T6a
-            _MemGet m, o, T6b
-            _MemPut m, o1, T6b
-            _MemPut m, o, T6a
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
-            Case 7 'String
-            Dim T7a As String, T7b As String, T7c As String
-            T7a = Space$(ES): T7b = Space$(ES): T7c = Space$(ES)
-            gap = EC
-            Do
-            gap = Int(gap / 1.247330950103979)
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * ES
-            o1 = m.OFFSET + (i + gap) * ES
-            _MemGet m, o, T7a
-            _MemGet m, o1, T7b
-            If T7a > T7b Then
-            T7c = T7b
-            _MemPut m, o1, T7a
-            _MemPut m, o, T7c
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
-            Case 8 '_INTEGER64
-            Dim T8a As _Integer64, T8b As _Integer64
-            gap = EC
-            Do
-            gap = 10 * gap \ 13
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * 8
-            o1 = m.OFFSET + (i + gap) * 8
-            If _MemGet(m, o, _Integer64) > _MemGet(m, o1, _Integer64) Then
-            _MemGet m, o1, T8a
-            _MemGet m, o, T8b
-            _MemPut m, o1, T8b
-            _MemPut m, o, T8a
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
-            Case 11: '_UNSIGNED _BYTE
-            Dim temp11(0 To 255) As _Unsigned Long
-            Dim t11 As _Unsigned _Byte
-            i = 0
-            Do
-            _MemGet m, m.OFFSET + i, t11
-            temp11(t11) = temp11(t11) + 1
-            i = i + 1
-            Loop Until i > EC
-            i1 = 0
-            Do
-            Do Until temp11(i1) = 0
-            _MemPut m, m.OFFSET + counter, i1 As _UNSIGNED _BYTE
-            counter = counter + 1
-            temp11(i1) = temp11(i1) - 1
-            If counter > EC Then Exit Sub
-            Loop
-            i1 = i1 + 1
-            Loop Until i1 > 255
-            Case 12 '_UNSIGNED INTEGER
-            Dim temp12(0 To 65535) As _Unsigned Long
-            Dim t12 As _Unsigned Integer
-            i = 0
-            Do
-            _MemGet m, m.OFFSET + i * 2, t12
-            temp12(t12) = temp12(t12) + 1
-            i = i + 1
-            Loop Until i > EC
-            i1 = 0
-            Do
-            Do Until temp12(i1) = 0
-            _MemPut m, m.OFFSET + counter * 2, i1 As _UNSIGNED INTEGER
-            counter = counter + 1
-            temp12(i1) = temp12(i1) - 1
-            If counter > EC Then Exit Sub
-            Loop
-            i1 = i1 + 1
-            Loop Until i1 > 65535
-            Case 14 '_UNSIGNED LONG
-            Dim T14a As _Unsigned Long, T14b As _Unsigned Long
-            gap = EC
-            Do
-            gap = 10 * gap \ 13
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * 4
-            o1 = m.OFFSET + (i + gap) * 4
-            If _MemGet(m, o, _Unsigned Long) > _MemGet(m, o1, _Unsigned Long) Then
-            _MemGet m, o1, T14a
-            _MemGet m, o, T14b
-            _MemPut m, o1, T14b
-            _MemPut m, o, T14a
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
-            Case 18: '_UNSIGNED _INTEGER64
-            Dim T18a As _Unsigned _Integer64, T18b As _Unsigned _Integer64
-            gap = EC
-            Do
-            gap = 10 * gap \ 13
-            If gap < 1 Then gap = 1
-            i = 0
-            swapped = 0
-            Do
-            o = m.OFFSET + i * 8
-            o1 = m.OFFSET + (i + gap) * 8
-            If _MemGet(m, o, _Unsigned _Integer64) > _MemGet(m, o1, _Unsigned _Integer64) Then
-            _MemGet m, o1, T18a
-            _MemGet m, o, T18b
-            _MemPut m, o1, T18b
-            _MemPut m, o, T18a
-            swapped = -1
-            End If
-            i = i + 1
-            Loop Until i + gap > EC
-            Loop Until gap = 1 And swapped = 0
+                Case 1 'BYTE
+                    Dim temp1(-128 To 127) As _Unsigned Long
+                    Dim t1 As _Byte
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i, t1
+                        temp1(t1) = temp1(t1) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = -128
+                    Do
+                        Do Until temp1(i1) = 0
+                            _MemPut m, m.OFFSET + counter, i1 As _BYTE
+                            counter = counter + 1
+                            temp1(i1) = temp1(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 127
+                Case 2: 'INTEGER
+                    Dim temp2(-32768 To 32767) As _Unsigned Long
+                    Dim t2 As Integer
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i * 2, t2
+                        temp2(t2) = temp2(t2) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = -32768
+                    Do
+                        Do Until temp2(i1) = 0
+                            _MemPut m, m.OFFSET + counter * 2, i1 As INTEGER
+                            counter = counter + 1
+                            temp2(i1) = temp2(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 32767
+                Case 3 'SINGLE
+                    Dim T3a As Single, T3b As Single
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 4
+                            o1 = m.OFFSET + (i + gap) * 4
+                            If _MemGet(m, o, Single) > _MemGet(m, o1, Single) Then
+                                _MemGet m, o1, T3a
+                                _MemGet m, o, T3b
+                                _MemPut m, o1, T3b
+                                _MemPut m, o, T3a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 4 'LONG
+                    Dim T4a As Long, T4b As Long
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 4
+                            o1 = m.OFFSET + (i + gap) * 4
+                            If _MemGet(m, o, Long) > _MemGet(m, o1, Long) Then
+                                _MemGet m, o1, T4a
+                                _MemGet m, o, T4b
+                                _MemPut m, o1, T4b
+                                _MemPut m, o, T4a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 5 'DOUBLE
+                    Dim T5a As Double, T5b As Double
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 8
+                            o1 = m.OFFSET + (i + gap) * 8
+                            If _MemGet(m, o, Double) > _MemGet(m, o1, Double) Then
+                                _MemGet m, o1, T5a
+                                _MemGet m, o, T5b
+                                _MemPut m, o1, T5b
+                                _MemPut m, o, T5a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 6 ' _FLOAT
+                    Dim T6a As _Float, T6b As _Float
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 32
+                            o1 = m.OFFSET + (i + gap) * 32
+                            If _MemGet(m, o, _Float) > _MemGet(m, o1, _Float) Then
+                                _MemGet m, o1, T6a
+                                _MemGet m, o, T6b
+                                _MemPut m, o1, T6b
+                                _MemPut m, o, T6a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 7 'String
+                    Dim T7a As String, T7b As String, T7c As String
+                    T7a = Space$(ES): T7b = Space$(ES): T7c = Space$(ES)
+                    gap = EC
+                    Do
+                        gap = Int(gap / 1.247330950103979)
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * ES
+                            o1 = m.OFFSET + (i + gap) * ES
+                            _MemGet m, o, T7a
+                            _MemGet m, o1, T7b
+                            If T7a > T7b Then
+                                T7c = T7b
+                                _MemPut m, o1, T7a
+                                _MemPut m, o, T7c
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 8 '_INTEGER64
+                    Dim T8a As _Integer64, T8b As _Integer64
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 8
+                            o1 = m.OFFSET + (i + gap) * 8
+                            If _MemGet(m, o, _Integer64) > _MemGet(m, o1, _Integer64) Then
+                                _MemGet m, o1, T8a
+                                _MemGet m, o, T8b
+                                _MemPut m, o1, T8b
+                                _MemPut m, o, T8a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 11: '_UNSIGNED _BYTE
+                    Dim temp11(0 To 255) As _Unsigned Long
+                    Dim t11 As _Unsigned _Byte
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i, t11
+                        temp11(t11) = temp11(t11) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = 0
+                    Do
+                        Do Until temp11(i1) = 0
+                            _MemPut m, m.OFFSET + counter, i1 As _UNSIGNED _BYTE
+                            counter = counter + 1
+                            temp11(i1) = temp11(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 255
+                Case 12 '_UNSIGNED INTEGER
+                    Dim temp12(0 To 65535) As _Unsigned Long
+                    Dim t12 As _Unsigned Integer
+                    i = 0
+                    Do
+                        _MemGet m, m.OFFSET + i * 2, t12
+                        temp12(t12) = temp12(t12) + 1
+                        i = i + 1
+                    Loop Until i > EC
+                    i1 = 0
+                    Do
+                        Do Until temp12(i1) = 0
+                            _MemPut m, m.OFFSET + counter * 2, i1 As _UNSIGNED INTEGER
+                            counter = counter + 1
+                            temp12(i1) = temp12(i1) - 1
+                            If counter > EC Then Exit Sub
+                        Loop
+                        i1 = i1 + 1
+                    Loop Until i1 > 65535
+                Case 14 '_UNSIGNED LONG
+                    Dim T14a As _Unsigned Long, T14b As _Unsigned Long
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 4
+                            o1 = m.OFFSET + (i + gap) * 4
+                            If _MemGet(m, o, _Unsigned Long) > _MemGet(m, o1, _Unsigned Long) Then
+                                _MemGet m, o1, T14a
+                                _MemGet m, o, T14b
+                                _MemPut m, o1, T14b
+                                _MemPut m, o, T14a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
+                Case 18: '_UNSIGNED _INTEGER64
+                    Dim T18a As _Unsigned _Integer64, T18b As _Unsigned _Integer64
+                    gap = EC
+                    Do
+                        gap = 10 * gap \ 13
+                        If gap < 1 Then gap = 1
+                        i = 0
+                        swapped = 0
+                        Do
+                            o = m.OFFSET + i * 8
+                            o1 = m.OFFSET + (i + gap) * 8
+                            If _MemGet(m, o, _Unsigned _Integer64) > _MemGet(m, o1, _Unsigned _Integer64) Then
+                                _MemGet m, o1, T18a
+                                _MemGet m, o, T18b
+                                _MemPut m, o1, T18b
+                                _MemPut m, o, T18a
+                                swapped = -1
+                            End If
+                            i = i + 1
+                        Loop Until i + gap > EC
+                    Loop Until gap = 1 And swapped = 0
             End Select
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCROLLUP = TRUE Then
     $If SCROLLUP_BM = UNDEFINED Then
-            $Let SCROLLUP_BM = TRUE
-            Sub ScrollUp (ImageHandle As Long)
+        $Let SCROLLUP_BM = TRUE
+        Sub ScrollUp (ImageHandle As Long)
             $Checking:Off
             Dim m As _MEM
             Dim As Long p, w
@@ -493,14 +363,14 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCROLLUP = TRUE Then
             _MemPut m, m.OFFSET, t$
             _MemFree m
             $Checking:On
-            End Sub
+        End Sub
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCROLLDOWN = TRUE Then
     $If SCROLLDOWN_BM = UNDEFINED Then
-            $Let SCROLLDOWN_BM = TRUE
-            Sub ScrollDown (ImageHandle As Long)
+        $Let SCROLLDOWN_BM = TRUE
+        Sub ScrollDown (ImageHandle As Long)
             $Checking:Off
             Dim m As _MEM
             Dim As Long p, w
@@ -514,58 +384,58 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCROLLDOWN = TRUE The
             _MemPut m, m.OFFSET + w, t$
             _MemFree m
             $Checking:On
-            End Sub
+        End Sub
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SOUND = TRUE OR INCLUDE_SPEECH = TRUE Then
     $If SPEAK_BM = UNDEFINED Then
-            $Let SPEAK_BM = TRUE
+        $Let SPEAK_BM = TRUE
         $If WIN Then
-                Sub Speech_Init
+            Sub Speech_Init
                 Speech.Speaker = 0
                 Speech.Speed = 0
                 Speech.Volume = 100
                 Speech.File = ""
-                End Sub
+            End Sub
 
-                Sub Speech_Speaker (who$)
+            Sub Speech_Speaker (who$)
                 Shared Speech As SpeechType
                 Select Case UCase$(who$)
-                Case "DAVID", "MALE", "M": Speech.Speaker = 0
-                Case "ZIVA", "FEMALE", "F": Speech.Speaker = 1
+                    Case "DAVID", "MALE", "M": Speech.Speaker = 0
+                    Case "ZIVA", "FEMALE", "F": Speech.Speaker = 1
                 End Select
-                End Sub
+            End Sub
 
-                Sub Speech_Speed (Speed)
+            Sub Speech_Speed (Speed)
                 Shared Speech As SpeechType
                 Speech.Speed = Speed
-                End Sub
+            End Sub
 
-                Sub Speech_Volume (Volume)
+            Sub Speech_Volume (Volume)
                 Shared Speech As SpeechType
                 Speech.Volume = Volume
-                End Sub
+            End Sub
 
-                Sub Speech_OutTo (where$)
+            Sub Speech_OutTo (where$)
                 Shared Speech As SpeechType
                 Select Case UCase$(where$)
-                Case "CONSOLE", "CONS", "", "SPEAKER": Speech.File$ = ""
-                Case Else: Speech.File$ = where$
+                    Case "CONSOLE", "CONS", "", "SPEAKER": Speech.File$ = ""
+                    Case Else: Speech.File$ = where$
                 End Select
-                End Sub
+            End Sub
 
-                Sub Speak (text$)
+            Sub Speak (text$)
                 Shared Speech As SpeechType
                 DoSpeech text$, Speech.Speaker, Speech.Speed, "", Speech.Volume
-                End Sub
+            End Sub
 
-                Sub Speak_ToWav (text$, file$)
+            Sub Speak_ToWav (text$, file$)
                 Shared Speech As SpeechType
                 If UCase$(Right$(file$, 4)) = ".WAV" Then DoSpeech text$, Speech.Speaker, Speech.Speed, file$, Speech.Volume
-                End Sub
+            End Sub
 
-                Sub DoSpeech (text As String, Speaker As Integer, Speed, savefile$, volume)
+            Sub DoSpeech (text As String, Speaker As Integer, Speed, savefile$, volume)
                 Dim As String message, file, remove
                 Dim out$
                 Dim As Long j, i
@@ -575,10 +445,10 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_SOUND = TRUE OR INCLUDE_SPEECH = TRUE Then
                 'we need to strip them out of our text.  (Like apostrophes!)
                 remove$ = "'" + Chr$(34) 'add to remove$ here, if more symbols need to be removed as future testing showcases problems
                 For j = 1 To Len(remove$)
-                Do
-                i = InStr(message, Mid$(remove$, j, 1))
-                If i Then message = Left$(message, i - 1) + Mid$(message, i + 1)
-                Loop Until i = 0
+                    Do
+                        i = InStr(message, Mid$(remove$, j, 1))
+                        If i Then message = Left$(message, i - 1) + Mid$(message, i + 1)
+                    Loop Until i = 0
                 Next
                 out$ = "Powershell -Command " + Chr$(34)
                 out$ = out$ + "Add-Type -AssemblyName System.Speech; "
@@ -590,7 +460,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_SOUND = TRUE OR INCLUDE_SPEECH = TRUE Then
                 If Speed Then out$ = out$ + "$Speech.Rate =" + Str$(Speed) + "; "
                 out$ = out$ + "$Speech.Speak('" + message + "');" + Chr$(34)
                 Shell _Hide _DontWait out$
-                End Sub
+            End Sub
         $Else
                 Sub Speak (dummy as string)
                 BEEP
@@ -602,72 +472,72 @@ $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_BORDERWIDTH = TRUE Then
     $If BORDERWIDTH_BM = UNDEFINED Then
-            $Let BORDERWIDTH_BM = TRUE
-            Function BorderWidth&
+        $Let BORDERWIDTH_BM = TRUE
+        Function BorderWidth&
             $Let INCLUDE_GLUTGET = TRUE
             BorderWidth = glutGet(506)
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_TITLEBARHEIGHT = TRUE Then
     $If TITLEBARHEIGHT_BM = UNDEFINED Then
-            $Let TITLEBARHEIGHT_BM = TRUE
-            Function TitleBarHeight&
+        $Let TITLEBARHEIGHT_BM = TRUE
+        Function TitleBarHeight&
             $Let INCLUDE_GLUTGET = TRUE
             TitleBarHeight = glutGet(507)
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCREENMOVE_MIDDLE = TRUE Then
     $If SCREENMOVE_MIDDLE_BM = UNDEFINED Then
-            $Let SCREENMOVE_MIDDLE_BM = TRUE
-            Sub ScreenMove_Middle
+        $Let SCREENMOVE_MIDDLE_BM = TRUE
+        Sub ScreenMove_Middle
             'Moves to the absolute middle of the desktop, ignoring border and title, so the program window is centered without
             'taking them into consideration.
             $Let INCLUDE_GLUTGET = TRUE
             _ScreenMove (_DesktopWidth - _Width - BorderWidth) / 2 + 1, (_DesktopHeight - _Height - BorderWidth) / 2 - TitleBarHeight + 1
-            End Sub
+        End Sub
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_SCREENMOVE = TRUE Then
     $If SCREENMOVE_BM = UNDEFINED Then
-            $Let SCREENMOVE_BM = TRUE
-            Sub ScreenMove (x, y)
+        $Let SCREENMOVE_BM = TRUE
+        Sub ScreenMove (x, y)
             'Moves to the absolute coordinates of the desktop, ignoring border and title, so the program window is
             ' positioned with the program window at the desired position, without taking them into consideration.
             $Let INCLUDE_GLUTGET = TRUE
             _ScreenMove x - BorderWidth, y - BorderWidth - TitleBarHeight
-            End Sub
+        End Sub
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_WINDOWWIDTH = TRUE Then
     $If WINDOWWIDTH_BM = UNDEFINED Then
-            $Let WINDOWWIDTH_BM = TRUE
-            Function WindowWidth
+        $Let WINDOWWIDTH_BM = TRUE
+        Function WindowWidth
             $Let INCLUDE_GLUTGET = TRUE
             WindowWidth = glutGet(102) '102 is the const value of GLUT_WINDOW_WIDTH
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_SCREEN = TRUE OR INCLUDE_WINDOWHEIGHT = TRUE Then
     $If WINDOWHEIGHT_BM = UNDEFINED Then
-            $Let WINDOWHEIGHT_BM = TRUE
-            Function WindowHeight
+        $Let WINDOWHEIGHT_BM = TRUE
+        Function WindowHeight
             $Let INCLUDE_GLUTGET = TRUE
             WindowHeight = glutGet(103) '103 is the const value of GLUT_WINDOW_HEIGHT
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_MOUSE = TRUE OR INCLUDE_MOUSEBUTTONSTATUS = TRUE Then
     $If MOUSEBUTTONSTATUS_BM = UNDEFINED Then
-            $Let MOUSEBUTTONSTATUS_BM = TRUE
-            Function MouseButtonStatus% (takeMouseInput As Long)
+        $Let MOUSEBUTTONSTATUS_BM = TRUE
+        Function MouseButtonStatus% (takeMouseInput As Long)
             '1 -- left down
             '2 -- right down
             '4 -- middle down
@@ -686,12 +556,12 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MOUSE = TRUE OR INCLUDE_MOUSEBUTTONSTATUS = TR
             '                          Down longer counts as a HOLD event.
             Dim As Long tempMBS, bd
             If takeMouseInput Then
-            While _MouseInput 'Remark out this block, if mouse main input/clear is going to be handled manually in main program.
-            Select Case Sgn(_MouseWheel)
-            Case 1: tempMBS = tempMBS Or 512
-            Case -1: tempMBS = tempMBS Or 1024
-            End Select
-            Wend
+                While _MouseInput 'Remark out this block, if mouse main input/clear is going to be handled manually in main program.
+                    Select Case Sgn(_MouseWheel)
+                        Case 1: tempMBS = tempMBS Or 512
+                        Case -1: tempMBS = tempMBS Or 1024
+                    End Select
+                Wend
             End If
 
             If _MouseButton(1) Then tempMBS = tempMBS Or 1
@@ -699,93 +569,93 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MOUSE = TRUE OR INCLUDE_MOUSEBUTTONSTATUS = TR
             If _MouseButton(3) Then tempMBS = tempMBS Or 4
 
             If StartTimer = 0 Then
-            If _MouseButton(1) Then 'If a button is pressed, start the timer to see what it does (click or hold)
-            ButtonDown = 1: StartTimer = Timer(0.01)
-            Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
-            ElseIf _MouseButton(2) Then
-            ButtonDown = 2: StartTimer = Timer(0.01)
-            Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
-            ElseIf _MouseButton(3) Then
-            ButtonDown = 3: StartTimer = Timer(0.01)
-            Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
-            End If
+                If _MouseButton(1) Then 'If a button is pressed, start the timer to see what it does (click or hold)
+                    ButtonDown = 1: StartTimer = Timer(0.01)
+                    Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+                ElseIf _MouseButton(2) Then
+                    ButtonDown = 2: StartTimer = Timer(0.01)
+                    Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+                ElseIf _MouseButton(3) Then
+                    ButtonDown = 3: StartTimer = Timer(0.01)
+                    Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+                End If
             Else
-            bd = ButtonDown Mod 3
-            If bd = 0 Then bd = 3
-            If Timer(0.01) - StartTimer <= ClickLimit Then 'Button was down, then up, within time limit.  It's a click
-            If _MouseButton(bd) = 0 Then tempMBS = 4 * 2 ^ ButtonDown: ButtonDown = 0: StartTimer = 0
-            Else
-            If _MouseButton(bd) = 0 Then 'hold event has now ended
-            tempMBS = 0: ButtonDown = 0: StartTimer = 0
-            Mouse_EndX = _MouseX: Mouse_EndY = _MouseY
-            Else 'We've now started the hold event
-            tempMBS = tempMBS Or 32 * 2 ^ ButtonDown
-            End If
-            End If
+                bd = ButtonDown Mod 3
+                If bd = 0 Then bd = 3
+                If Timer(0.01) - StartTimer <= ClickLimit Then 'Button was down, then up, within time limit.  It's a click
+                    If _MouseButton(bd) = 0 Then tempMBS = 4 * 2 ^ ButtonDown: ButtonDown = 0: StartTimer = 0
+                Else
+                    If _MouseButton(bd) = 0 Then 'hold event has now ended
+                        tempMBS = 0: ButtonDown = 0: StartTimer = 0
+                        Mouse_EndX = _MouseX: Mouse_EndY = _MouseY
+                    Else 'We've now started the hold event
+                        tempMBS = tempMBS Or 32 * 2 ^ ButtonDown
+                    End If
+                End If
             End If
             MouseButtonStatus = tempMBS
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETDAY = TRUE Then
     $If GETDAY_BM = UNDEFINED Then
-            $Let GETDAY_BM = TRUE
-            $Let INCLUDE_CHECKDAYFORMAT = TRUE
-            Function GetDay& (Day As String) 'use MM/DD/YYYY format
+        $Let GETDAY_BM = TRUE
+        $Let INCLUDE_CHECKDAYFORMAT = TRUE
+        Function GetDay& (Day As String) 'use MM/DD/YYYY format
             If CheckDayFormat(Day$) = 0 Then GetDay = 0: Exit Function
             GetDay = Val(Mid$(Day, 4, 2))
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETMONTH = TRUE Then
     $If GETMONTH_BM = UNDEFINED Then
-            $Let GETMONTH_BM = TRUE
-            Function GetMonth& (Day As String) 'use MM/DD/YYYY format
+        $Let GETMONTH_BM = TRUE
+        Function GetMonth& (Day As String) 'use MM/DD/YYYY format
             $Let INCLUDE_CHECKDAYFORMAT = TRUE
             If CheckDayFormat(Day$) = 0 Then GetMonth = 0: Exit Function
             GetMonth = Val(Left$(Day, 2))
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETYEAR = TRUE Then
     $If GETYEAR_BM = UNDEFINED Then
-            $Let GETYEAR_BM = TRUE
-            Function GetYear& (Day As String) 'use MM/DD/YYYY format
+        $Let GETYEAR_BM = TRUE
+        Function GetYear& (Day As String) 'use MM/DD/YYYY format
             $Let INCLUDE_CHECKDAYFORMAT = TRUE
             If CheckDayFormat(Day$) = 0 Then GetYear = 0: Exit Function
             GetYear = Val(Right$(Day, 4))
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETWEEKDAYNAME = TRUE Then
     $If GETWEEKDAYNAME_BM = UNDEFINED Then
-            $Let GETDAY_BM = TRUE
-            Function GetWeekDayName$ (Day$) 'use MM/DD/YYYY format
+        $Let GETDAY_BM = TRUE
+        Function GetWeekDayName$ (Day$) 'use MM/DD/YYYY format
             $Let INCLUDE_GETWEEKDAY = TRUE
             Dim result As Long
             result = GetWeekDay(Day$)
             Select Case result
-            Case 1: GetWeekDayName = "Sunday"
-            Case 2: GetWeekDayName = "Monday"
-            Case 3: GetWeekDayName = "Tuesday"
-            Case 4: GetWeekDayName = "Wednesday"
-            Case 5: GetWeekDayName = "Thursday"
-            Case 6: GetWeekDayName = "Friday"
-            Case 7: GetWeekDayName = "Saturday"
+                Case 1: GetWeekDayName = "Sunday"
+                Case 2: GetWeekDayName = "Monday"
+                Case 3: GetWeekDayName = "Tuesday"
+                Case 4: GetWeekDayName = "Wednesday"
+                Case 5: GetWeekDayName = "Thursday"
+                Case 6: GetWeekDayName = "Friday"
+                Case 7: GetWeekDayName = "Saturday"
             End Select
-            End Function
+        End Function
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETWEEKDAY = TRUE Then
     $If GETDWEEKAY_BM = UNDEFINED Then
-            $Let GETWEEKDAY_BM = TRUE
-            Function GetWeekDay& (Day$) 'use MM/DD/YYYY format
+        $Let GETWEEKDAY_BM = TRUE
+        Function GetWeekDay& (Day$) 'use MM/DD/YYYY format
             'From Zeller's congruence: https://en.wikipedia.org/wiki/Zeller%27s_congruence
             If CheckDayFormat(Day$) = 0 Then GetWeekDay = 0: Exit Function
             Dim As Long century, zerocentury, result
@@ -797,20 +667,20 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_GETWEEKDAY = TRUE Then
             result = (DD + Int(13 * (MM + 1) / 5) + century + Int(century / 4) + Int(zerocentury / 4) + 5 * zerocentury) Mod 7
             If result = 0 Then result = 7
             GetWeekDay& = result 'results are 1 to 7, from Sunday to Saturday
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_MAKEDATE = TRUE Then
     $If MAKEDATE_BM = UNDEFINED Then
-            $Let MAKEDATE_BM = TRUE
-            Function MakeDate$ (MM As _Unsigned Long, DD As _Unsigned Long, YYYY As _Unsigned Long)
+        $Let MAKEDATE_BM = TRUE
+        Function MakeDate$ (MM As _Unsigned Long, DD As _Unsigned Long, YYYY As _Unsigned Long)
             Dim As String TD, TM, TY
             TM = Right$("00" + _Trim$(Str$(MM)), 2)
             TD = Right$("00" + _Trim$(Str$(DD)), 2)
             TY = Right$("0000" + _Trim$(Str$(YYYY)), 4)
             MakeDate = TM + "-" + TD + "-" + TY
-            End Function
+        End Function
     $End If
 $End If
 
@@ -818,8 +688,8 @@ $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_CHECKDAYFORMAT = TRUE Then
     $If CHECKDAYFORMAT_BM = UNDEFINED Then
-            $Let CHECKDAYFORMAT_BM = TRUE
-            Function CheckDayFormat (Day As String) 'use MM/DD/YYYY format
+        $Let CHECKDAYFORMAT_BM = TRUE
+        Function CheckDayFormat (Day As String) 'use MM/DD/YYYY format
             Dim As String DD, MM, YYYY, TD, TM, TY
             Dim As Long glitch
             If Len(Day$) <> 10 Then glitch = -1
@@ -833,7 +703,7 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_CHECKDAYFORMAT = TRUE T
             If TM <> MM Then glitch = -1
             If TY <> YYYY Then glitch = -1
             If glitch = 0 Then CheckDayFormat = -1
-            End Function
+        End Function
     $End If
 $End If
 
@@ -842,8 +712,8 @@ $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_TIMESTAMP = TRUE Then
     $If TIMESTAMP_BM = UNDEFINED Then
-            $Let TIMESTAMP_BM = TRUE
-            Function TimeStamp## (d$, t##) 'date and timer
+        $Let TIMESTAMP_BM = TRUE
+        Function TimeStamp## (d$, t##) 'date and timer
             'Based on Unix Epoch time, which starts at year 1970.
             Dim l As _Integer64, l1 As _Integer64, m As _Integer64
             Dim d As _Integer64, y As _Integer64, i As _Integer64
@@ -855,69 +725,69 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_TIMESTAMP = TRUE Then
             d = Val(Mid$(d$, l + 1))
             y = Val(Mid$(d$, l1 + 1))
             If y < 1970 Then 'calculate shit backwards
-            Select Case m 'turn the day backwards for the month
-            Case 1, 3, 5, 7, 8, 10, 12: d = 31 - d '31 days
-            Case 2: d = 28 - d 'special 28 or 29.
-            Case 4, 6, 9, 11: d = 30 - d '30 days
-            End Select
-            If y Mod 4 = 0 And m < 3 Then 'check for normal leap year, and we're before it...
-            d = d + 1 'assume we had a leap year, subtract another day
-            If y Mod 100 = 0 And y Mod 400 <> 0 Then d = d - 1 'not a leap year if year is divisible by 100 and not 400
-            End If
+                Select Case m 'turn the day backwards for the month
+                    Case 1, 3, 5, 7, 8, 10, 12: d = 31 - d '31 days
+                    Case 2: d = 28 - d 'special 28 or 29.
+                    Case 4, 6, 9, 11: d = 30 - d '30 days
+                End Select
+                If y Mod 4 = 0 And m < 3 Then 'check for normal leap year, and we're before it...
+                    d = d + 1 'assume we had a leap year, subtract another day
+                    If y Mod 100 = 0 And y Mod 400 <> 0 Then d = d - 1 'not a leap year if year is divisible by 100 and not 400
+                End If
 
-            'then count the months that passed after the current month
-            For i = m + 1 To 12
-            Select Case i
-            Case 2: d = d + 28
-            Case 3, 5, 7, 8, 10, 12: d = d + 31
-            Case 4, 6, 9, 11: d = d + 30
-            End Select
-            Next
+                'then count the months that passed after the current month
+                For i = m + 1 To 12
+                    Select Case i
+                        Case 2: d = d + 28
+                        Case 3, 5, 7, 8, 10, 12: d = d + 31
+                        Case 4, 6, 9, 11: d = d + 30
+                    End Select
+                Next
 
-            'we should now have the entered year calculated.  Now lets add in for each year from this point to 1970
-            d = d + 365 * (1969 - y) '365 days per each standard year
-            For i = 1968 To y + 1 Step -4 'from 1968 onwards,backwards, skipping the current year (which we handled previously in the FOR loop)
-            d = d + 1 'subtract an extra day every leap year
-            If (i Mod 100) = 0 And (i Mod 400) <> 0 Then d = d - 1 'but skipping every year divisible by 100, but not 400
-            Next
-            s## = d * 24 * 60 * 60 'Seconds are days * 24 hours * 60 minutes * 60 seconds
-            TimeStamp## = -(s## + 24 * 60 * 60 - t##)
-            Exit Function
+                'we should now have the entered year calculated.  Now lets add in for each year from this point to 1970
+                d = d + 365 * (1969 - y) '365 days per each standard year
+                For i = 1968 To y + 1 Step -4 'from 1968 onwards,backwards, skipping the current year (which we handled previously in the FOR loop)
+                    d = d + 1 'subtract an extra day every leap year
+                    If (i Mod 100) = 0 And (i Mod 400) <> 0 Then d = d - 1 'but skipping every year divisible by 100, but not 400
+                Next
+                s## = d * 24 * 60 * 60 'Seconds are days * 24 hours * 60 minutes * 60 seconds
+                TimeStamp## = -(s## + 24 * 60 * 60 - t##)
+                Exit Function
             Else
-            y = y - 1970
+                y = y - 1970
             End If
 
             For i = 1 To m 'for this year,
-            Select Case i 'Add the number of days for each previous month passed
-            Case 1: d = d 'January doestn't have any carry over days.
-            Case 2, 4, 6, 8, 9, 11: d = d + 31
-            Case 3 'Feb might be a leap year
-            If (y Mod 4) = 2 Then 'if this year is divisible by 4 (starting in 1972)
-            d = d + 29 'its a leap year
-            If (y Mod 100) = 30 And (y Mod 400) <> 30 Then 'unless..
-            d = d - 1 'the year is divisible by 100, and not divisible by 400
-            End If
-            Else 'year not divisible by 4, no worries
-            d = d + 28
-            End If
-            Case 5, 7, 10, 12: d = d + 30
-            End Select
+                Select Case i 'Add the number of days for each previous month passed
+                    Case 1: d = d 'January doestn't have any carry over days.
+                    Case 2, 4, 6, 8, 9, 11: d = d + 31
+                    Case 3 'Feb might be a leap year
+                        If (y Mod 4) = 2 Then 'if this year is divisible by 4 (starting in 1972)
+                            d = d + 29 'its a leap year
+                            If (y Mod 100) = 30 And (y Mod 400) <> 30 Then 'unless..
+                                d = d - 1 'the year is divisible by 100, and not divisible by 400
+                            End If
+                        Else 'year not divisible by 4, no worries
+                            d = d + 28
+                        End If
+                    Case 5, 7, 10, 12: d = d + 30
+                End Select
             Next
             d = (d - 1) + 365 * y 'current month days passed + 365 days per each standard year
             For i = 2 To y - 1 Step 4 'from 1972 onwards, skipping the current year (which we handled previously in the FOR loopp)
-            d = d + 1 'add an extra day every leap year
-            If (i Mod 100) = 30 And (i Mod 400) <> 30 Then d = d - 1 'but skiping every year divisible by 100, but not 400
+                d = d + 1 'add an extra day every leap year
+                If (i Mod 100) = 30 And (i Mod 400) <> 30 Then d = d - 1 'but skiping every year divisible by 100, but not 400
             Next
             s## = d * 24 * 60 * 60 'Seconds are days * 24 hours * 60 minutes * 60 seconds
             TimeStamp## = (s## + t##)
-            End Function
+        End Function
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_EXTENDEDTIMER = TRUE Then
     $If EXTENDEDTIMER_BM = UNDEFINED Then
-            $Let EXTENDEDTIMER_BM = TRUE
-            Function ExtendedTimer##
+        $Let EXTENDEDTIMER_BM = TRUE
+        Function ExtendedTimer##
             'Simplified version of the TimeStamp routine, streamlined to only give positive values based on the current timer.
             'Note:  Only good until the year 2100, as we don't do all the fancy calculations for leap years.
             'A timer should work quickly and efficiently in the background; and the less we do, the less lag we might insert
@@ -930,32 +800,32 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_EXTENDEDTIMER = TRUE Th
             d = Val(Mid$(day, 4, 2))
             y = Val(Right$(day, 4)) - 1970
             Select Case m 'Add the number of days for each previous month passed
-            Case 2: d = d + 31
-            Case 3: d = d + 59
-            Case 4: d = d + 90
-            Case 5: d = d + 120
-            Case 6: d = d + 151
-            Case 7: d = d + 181
-            Case 8: d = d + 212
-            Case 9: d = d + 243
-            Case 10: d = d + 273
-            Case 11: d = d + 304
-            Case 12: d = d + 334
+                Case 2: d = d + 31
+                Case 3: d = d + 59
+                Case 4: d = d + 90
+                Case 5: d = d + 120
+                Case 6: d = d + 151
+                Case 7: d = d + 181
+                Case 8: d = d + 212
+                Case 9: d = d + 243
+                Case 10: d = d + 273
+                Case 11: d = d + 304
+                Case 12: d = d + 334
             End Select
             If (y Mod 4) = 2 And m > 2 Then d = d + 1 'add a day if this is leap year and we're past february
             d = (d - 1) + 365 * y 'current month days passed + 365 days per each standard year
             d = d + (y + 2) \ 4 'add in days for leap years passed
             s = d * 24 * 60 * 60 'Seconds are days * 24 hours * 60 minutes * 60 seconds
             ExtendedTimer## = (s + Timer)
-            End Function
+        End Function
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_UNIDATE = TRUE Then
     $If UNIDATE_BM = UNDEFINED Then
-            $Let UNIDATE_BM = TRUE
-            Function UniDate$ (format$, userdate$)
+        $Let UNIDATE_BM = TRUE
+        Function UniDate$ (format$, userdate$)
             'some basic documentation for formatting:
             'dates sent via userdate$ should be in the standardized QB64 DATE$ format -- MM/DD/YYYY
             'To customize your return date format, use the following syntax
@@ -995,134 +865,134 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_UNIDATE = TRUE Then
             y$ = Right$(temp$, 4)
             temp$ = format$
             Do
-            firstchar$ = Left$(temp$, 1)
-            Select Case firstchar$
-            Case "E" 'extended month
-            temp$ = Mid$(temp$, 2)
-            If Not MonthSet Then
-            MonthSet = -1
-            Select Case Val(m$)
-            Case 1: out$ = out$ + "January"
-            Case 2: out$ = out$ + "February"
-            Case 3: out$ = out$ + "March"
-            Case 4: out$ = out$ + "April"
-            Case 5: out$ = out$ + "May"
-            Case 6: out$ = out$ + "June"
-            Case 7: out$ = out$ + "July"
-            Case 8: out$ = out$ + "August"
-            Case 9: out$ = out$ + "September"
-            Case 10: out$ = out$ + "October"
-            Case 11: out$ = out$ + "November"
-            Case 12: out$ = out$ + "December"
-            End Select
-            End If
-            Case "M" 'long month
-            temp$ = Mid$(temp$, 2)
-            If Not MonthSet Then
-            MonthSet = -1
-            Select Case Val(m$)
-            Case 1: out$ = out$ + "Jan"
-            Case 2: out$ = out$ + "Feb"
-            Case 3: out$ = out$ + "Mar"
-            Case 4: out$ = out$ + "Apr"
-            Case 5: out$ = out$ + "May"
-            Case 6: out$ = out$ + "Jun"
-            Case 7: out$ = out$ + "Jul"
-            Case 8: out$ = out$ + "Aug"
-            Case 9: out$ = out$ + "Sep"
-            Case 10: out$ = out$ + "Oct"
-            Case 11: out$ = out$ + "Nov"
-            Case 12: out$ = out$ + "Dec"
-            End Select
-            End If
-            Case "m" 'short month
-            temp$ = Mid$(temp$, 2)
-            If Not MonthSet Then
-            MonthSet = -1
-            Select Case Val(m$)
-            Case 1: out$ = out$ + "01"
-            Case 2: out$ = out$ + "02"
-            Case 3: out$ = out$ + "03"
-            Case 4: out$ = out$ + "04"
-            Case 5: out$ = out$ + "05"
-            Case 6: out$ = out$ + "06"
-            Case 7: out$ = out$ + "07"
-            Case 8: out$ = out$ + "08"
-            Case 9: out$ = out$ + "09"
-            Case 10: out$ = out$ + "10"
-            Case 11: out$ = out$ + "11"
-            Case 12: out$ = out$ + "12"
-            End Select
-            End If
-            Case "D" 'long day
-            temp$ = Mid$(temp$, 2)
-            If Not DaySet Then
-            DaySet = -1
-            out$ = out$ + Right$("00" + _Trim$(d$), 2)
-            Select Case Val(d$)
-            Case 1, 11, 21, 31: out$ = out$ + "st"
-            Case 2, 22: out$ = out$ + "nd"
-            Case 3, 23: out$ = out$ + "rd"
-            Case Else: out$ = out$ + "th"
-            End Select
-            End If
-            Case "d" 'short day
-            temp$ = Mid$(temp$, 2)
-            If Not DaySet Then
-            DaySet = -1
-            out$ = out$ + Right$("00" + _Trim$(d$), 2)
-            End If
+                firstchar$ = Left$(temp$, 1)
+                Select Case firstchar$
+                    Case "E" 'extended month
+                        temp$ = Mid$(temp$, 2)
+                        If Not MonthSet Then
+                            MonthSet = -1
+                            Select Case Val(m$)
+                                Case 1: out$ = out$ + "January"
+                                Case 2: out$ = out$ + "February"
+                                Case 3: out$ = out$ + "March"
+                                Case 4: out$ = out$ + "April"
+                                Case 5: out$ = out$ + "May"
+                                Case 6: out$ = out$ + "June"
+                                Case 7: out$ = out$ + "July"
+                                Case 8: out$ = out$ + "August"
+                                Case 9: out$ = out$ + "September"
+                                Case 10: out$ = out$ + "October"
+                                Case 11: out$ = out$ + "November"
+                                Case 12: out$ = out$ + "December"
+                            End Select
+                        End If
+                    Case "M" 'long month
+                        temp$ = Mid$(temp$, 2)
+                        If Not MonthSet Then
+                            MonthSet = -1
+                            Select Case Val(m$)
+                                Case 1: out$ = out$ + "Jan"
+                                Case 2: out$ = out$ + "Feb"
+                                Case 3: out$ = out$ + "Mar"
+                                Case 4: out$ = out$ + "Apr"
+                                Case 5: out$ = out$ + "May"
+                                Case 6: out$ = out$ + "Jun"
+                                Case 7: out$ = out$ + "Jul"
+                                Case 8: out$ = out$ + "Aug"
+                                Case 9: out$ = out$ + "Sep"
+                                Case 10: out$ = out$ + "Oct"
+                                Case 11: out$ = out$ + "Nov"
+                                Case 12: out$ = out$ + "Dec"
+                            End Select
+                        End If
+                    Case "m" 'short month
+                        temp$ = Mid$(temp$, 2)
+                        If Not MonthSet Then
+                            MonthSet = -1
+                            Select Case Val(m$)
+                                Case 1: out$ = out$ + "01"
+                                Case 2: out$ = out$ + "02"
+                                Case 3: out$ = out$ + "03"
+                                Case 4: out$ = out$ + "04"
+                                Case 5: out$ = out$ + "05"
+                                Case 6: out$ = out$ + "06"
+                                Case 7: out$ = out$ + "07"
+                                Case 8: out$ = out$ + "08"
+                                Case 9: out$ = out$ + "09"
+                                Case 10: out$ = out$ + "10"
+                                Case 11: out$ = out$ + "11"
+                                Case 12: out$ = out$ + "12"
+                            End Select
+                        End If
+                    Case "D" 'long day
+                        temp$ = Mid$(temp$, 2)
+                        If Not DaySet Then
+                            DaySet = -1
+                            out$ = out$ + Right$("00" + _Trim$(d$), 2)
+                            Select Case Val(d$)
+                                Case 1, 11, 21, 31: out$ = out$ + "st"
+                                Case 2, 22: out$ = out$ + "nd"
+                                Case 3, 23: out$ = out$ + "rd"
+                                Case Else: out$ = out$ + "th"
+                            End Select
+                        End If
+                    Case "d" 'short day
+                        temp$ = Mid$(temp$, 2)
+                        If Not DaySet Then
+                            DaySet = -1
+                            out$ = out$ + Right$("00" + _Trim$(d$), 2)
+                        End If
 
-            Case "W" 'long weekday
-            temp$ = Mid$(temp$, 2)
-            If Not WeekdaySet Then
-            GoSub getday
-            Select Case result
-            Case 0: Day$ = "Saturday"
-            Case 1: Day$ = "Sunday"
-            Case 2: Day$ = "Monday"
-            Case 3: Day$ = "Tuesday"
-            Case 4: Day$ = "Wednesday"
-            Case 5: Day$ = "Thursday"
-            Case 6: Day$ = "Friday"
-            End Select
-            out$ = out$ + Day$
-            End If
-            Case "w" 'short weekday
-            temp$ = Mid$(temp$, 2)
-            If Not WeekdaySet Then
-            GoSub getday
-            Select Case result
-            Case 0: Day$ = "Sat"
-            Case 1: Day$ = "Sun"
-            Case 2: Day$ = "Mon"
-            Case 3: Day$ = "Tue"
-            Case 4: Day$ = "Wed"
-            Case 5: Day$ = "Thr"
-            Case 6: Day$ = "Fri"
-            End Select
-            out$ = out$ + Day$
-            End If
-            Case "Y", "y" 'year
-            If Not YearSet Then
-            YearSet = -1
-            If Left$(UCase$(temp$), 4) = "YYYY" Then
-            temp$ = Mid$(temp$, 5)
-            out$ = out$ + y$
-            ElseIf Left$(UCase$(temp$), 2) = "YY" Then
-            temp$ = Mid$(temp$, 3)
-            out$ = out$ + Right$(y$, 2)
-            Else
-            temp$ = Mid$(temp$, 2)
-            out$ = out$ + y$
-            End If
-            Else
-            temp$ = Mid$(temp$, 2)
-            End If
-            Case Else 'seperator
-            temp$ = Mid$(temp$, 2)
-            out$ = out$ + firstchar$
-            End Select
+                    Case "W" 'long weekday
+                        temp$ = Mid$(temp$, 2)
+                        If Not WeekdaySet Then
+                            GoSub getday
+                            Select Case result
+                                Case 0: Day$ = "Saturday"
+                                Case 1: Day$ = "Sunday"
+                                Case 2: Day$ = "Monday"
+                                Case 3: Day$ = "Tuesday"
+                                Case 4: Day$ = "Wednesday"
+                                Case 5: Day$ = "Thursday"
+                                Case 6: Day$ = "Friday"
+                            End Select
+                            out$ = out$ + Day$
+                        End If
+                    Case "w" 'short weekday
+                        temp$ = Mid$(temp$, 2)
+                        If Not WeekdaySet Then
+                            GoSub getday
+                            Select Case result
+                                Case 0: Day$ = "Sat"
+                                Case 1: Day$ = "Sun"
+                                Case 2: Day$ = "Mon"
+                                Case 3: Day$ = "Tue"
+                                Case 4: Day$ = "Wed"
+                                Case 5: Day$ = "Thr"
+                                Case 6: Day$ = "Fri"
+                            End Select
+                            out$ = out$ + Day$
+                        End If
+                    Case "Y", "y" 'year
+                        If Not YearSet Then
+                            YearSet = -1
+                            If Left$(UCase$(temp$), 4) = "YYYY" Then
+                                temp$ = Mid$(temp$, 5)
+                                out$ = out$ + y$
+                            ElseIf Left$(UCase$(temp$), 2) = "YY" Then
+                                temp$ = Mid$(temp$, 3)
+                                out$ = out$ + Right$(y$, 2)
+                            Else
+                                temp$ = Mid$(temp$, 2)
+                                out$ = out$ + y$
+                            End If
+                        Else
+                            temp$ = Mid$(temp$, 2)
+                        End If
+                    Case Else 'seperator
+                        temp$ = Mid$(temp$, 2)
+                        out$ = out$ + firstchar$
+                End Select
             Loop Until temp$ = ""
             UniDate$ = out$
             Exit Function
@@ -1136,15 +1006,15 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_TIME = TRUE OR INCLUDE_UNIDATE = TRUE Then
             zerocentury = yyyy \ 100
             result = (dd + Int(13 * (mm + 1) / 5) + century + Int(century / 4) + Int(zerocentury / 4) + 5 * zerocentury) Mod 7
             Return
-            End Function
+        End Function
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_DISPLAYIMAGE = TRUE Then
     $If DISPLAYIMAGE_BM = UNDEFINED Then
-            $Let DISPLAYIMAGE_BM = TRUE
-            Sub DisplayImage (Image As Long, x As Integer, y As Integer, xscale As Single, yscale As Single, angle As Single, mode As _Byte)
+        $Let DISPLAYIMAGE_BM = TRUE
+        Sub DisplayImage (Image As Long, x As Integer, y As Integer, xscale As Single, yscale As Single, angle As Single, mode As _Byte)
             'Image is the image handle which we use to reference our image.
             'x,y is the X/Y coordinates where we want the image to be at on the screen.
             'angle is the angle which we wish to rotate the image.
@@ -1161,30 +1031,30 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_DISPLAYIMAGE = TRUE Th
             w = _Width(Image): h = _Height(Image)
             w1 = w * xscale: h1 = h * yscale
             Select Case mode
-            Case 0 'center
-            px(0) = -w1 / 2: py(0) = -h1 / 2: px(3) = w1 / 2: py(3) = -h1 / 2
-            px(1) = -w1 / 2: py(1) = h1 / 2: px(2) = w1 / 2: py(2) = h1 / 2
-            Case 1 'top left
-            px(0) = 0: py(0) = 0: px(3) = w1: py(3) = 0
-            px(1) = 0: py(1) = h1: px(2) = w1: py(2) = h1
-            Case 2 'bottom left
-            px(0) = 0: py(0) = -h1: px(3) = w1: py(3) = -h1
-            px(1) = 0: py(1) = 0: px(2) = w1: py(2) = 0
-            Case 3 'top right
-            px(0) = -w1: py(0) = 0: px(3) = 0: py(3) = 0
-            px(1) = -w1: py(1) = h1: px(2) = 0: py(2) = h1
-            Case 4 'bottom right
-            px(0) = -w1: py(0) = -h1: px(3) = 0: py(3) = -h1
-            px(1) = -w1: py(1) = 0: px(2) = 0: py(2) = 0
+                Case 0 'center
+                    px(0) = -w1 / 2: py(0) = -h1 / 2: px(3) = w1 / 2: py(3) = -h1 / 2
+                    px(1) = -w1 / 2: py(1) = h1 / 2: px(2) = w1 / 2: py(2) = h1 / 2
+                Case 1 'top left
+                    px(0) = 0: py(0) = 0: px(3) = w1: py(3) = 0
+                    px(1) = 0: py(1) = h1: px(2) = w1: py(2) = h1
+                Case 2 'bottom left
+                    px(0) = 0: py(0) = -h1: px(3) = w1: py(3) = -h1
+                    px(1) = 0: py(1) = 0: px(2) = w1: py(2) = 0
+                Case 3 'top right
+                    px(0) = -w1: py(0) = 0: px(3) = 0: py(3) = 0
+                    px(1) = -w1: py(1) = h1: px(2) = 0: py(2) = h1
+                Case 4 'bottom right
+                    px(0) = -w1: py(0) = -h1: px(3) = 0: py(3) = -h1
+                    px(1) = -w1: py(1) = 0: px(2) = 0: py(2) = 0
             End Select
             sinr = Sin(angle / 57.2957795131): cosr = Cos(angle / 57.2957795131)
             For i = 0 To 3
-            x2 = (px(i) * cosr + sinr * py(i)) + x: y2 = (py(i) * cosr - px(i) * sinr) + y
-            px(i) = x2: py(i) = y2
+                x2 = (px(i) * cosr + sinr * py(i)) + x: y2 = (py(i) * cosr - px(i) * sinr) + y
+                px(i) = x2: py(i) = y2
             Next
             _MapTriangle (0, 0)-(0, h - 1)-(w - 1, h - 1), Image To(px(0), py(0))-(px(1), py(1))-(px(2), py(2))
             _MapTriangle (0, 0)-(w - 1, 0)-(w - 1, h - 1), Image To(px(0), py(0))-(px(3), py(3))-(px(2), py(2))
-            End Sub
+        End Sub
 
     $End If
 $End If
@@ -1192,8 +1062,8 @@ $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TEXTTOIMAGE = TRUE Then
     $If TEXTTOIMAGE_BM = UNDEFINED Then
-            $Let TEXTTOIMAGE_BM = TRUE
-            Function TextToImage& (text$, font&, fc&, bfc&, mode As _Byte)
+        $Let TEXTTOIMAGE_BM = TRUE
+        Function TextToImage& (text$, font&, fc&, bfc&, mode As _Byte)
             'text$ is the text that we wish to transform into an image.
             'font& is the handle of the font we want to use.
             'fc& is the color of the font we want to use.
@@ -1214,14 +1084,14 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TEXTTOIMAGE = TRUE The
             T2Idown = CsrLin: T2Iright = Pos(0)
             If font& <> 0 Then _Font font&
             If mode < 3 Then
-            'print the text lengthwise
-            w& = _PrintWidth(text$): h& = _FontHeight
+                'print the text lengthwise
+                w& = _PrintWidth(text$): h& = _FontHeight
             Else
-            'print the text vertically
-            For i = 1 To Len(text$)
-            If w& < _PrintWidth(Mid$(text$, i, 1)) Then w& = _PrintWidth(Mid$(text$, i, 1))
-            Next
-            h& = _FontHeight * (Len(text$))
+                'print the text vertically
+                For i = 1 To Len(text$)
+                    If w& < _PrintWidth(Mid$(text$, i, 1)) Then w& = _PrintWidth(Mid$(text$, i, 1))
+                Next
+                h& = _FontHeight * (Len(text$))
             End If
 
             TextToImage_temp& = _NewImage(w&, h&, 32)
@@ -1231,40 +1101,40 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TEXTTOIMAGE = TRUE The
             Color fc&, bfc&
 
             Select Case mode
-            Case 1
-            'Print text forward
-            _PrintString (0, 0), text$
-            Case 2
-            'Print text backwards
-            temp$ = ""
-            For i = 0 To Len(text$) - 1
-            temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
-            Next
-            _PrintString (0, 0), temp$
-            Case 3
-            'Print text upwards
-            'first lets reverse the text, so it's easy to place
-            temp$ = ""
-            For i = 0 To Len(text$) - 1
-            temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
-            Next
-            'then put it where it belongs
-            For i = 1 To Len(text$)
-            fx = (w& - _PrintWidth(Mid$(temp$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
-            _PrintString (fx, _FontHeight * (i - 1)), Mid$(temp$, i, 1)
-            Next
-            Case 4
-            'Print text downwards
-            For i = 1 To Len(text$)
-            fx = (w& - _PrintWidth(Mid$(text$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
-            _PrintString (fx, _FontHeight * (i - 1)), Mid$(text$, i, 1)
-            Next
+                Case 1
+                    'Print text forward
+                    _PrintString (0, 0), text$
+                Case 2
+                    'Print text backwards
+                    temp$ = ""
+                    For i = 0 To Len(text$) - 1
+                        temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
+                    Next
+                    _PrintString (0, 0), temp$
+                Case 3
+                    'Print text upwards
+                    'first lets reverse the text, so it's easy to place
+                    temp$ = ""
+                    For i = 0 To Len(text$) - 1
+                        temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
+                    Next
+                    'then put it where it belongs
+                    For i = 1 To Len(text$)
+                        fx = (w& - _PrintWidth(Mid$(temp$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
+                        _PrintString (fx, _FontHeight * (i - 1)), Mid$(temp$, i, 1)
+                    Next
+                Case 4
+                    'Print text downwards
+                    For i = 1 To Len(text$)
+                        fx = (w& - _PrintWidth(Mid$(text$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
+                        _PrintString (fx, _FontHeight * (i - 1)), Mid$(text$, i, 1)
+                    Next
             End Select
             _Dest D
             Color DC&, BGC&
             _Font F
             Locate T2Idown, T2Iright
-            End Function
+        End Function
 
     $End If
 $End If
@@ -1272,8 +1142,8 @@ $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECT = TRUE Then
     $If ROUNDRECT_BM = UNDEFINED Then
-            $Let ROUNDRECT_BM = TRUE
-            Sub RoundRect (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
+        $Let ROUNDRECT_BM = TRUE
+        Sub RoundRect (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
             Dim As Long a, b, e, r
 
             r = radius
@@ -1289,22 +1159,22 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECT = TRUE Then
 
             'And then draw the rounded circle portions of the RoundRect
             Do While a >= b
-            PSet (x + r - b, y + r - a), c: PSet (x1 - r + b, y + r - a), c
-            PSet (x + r - a, y + r - b), c: PSet (x1 - r + a, y + r - b), c
-            PSet (x + r - b, y1 - r + a), c: PSet (x1 - r + b, y1 - r + a), c
-            PSet (x + r - a, y1 - r + b), c: PSet (x1 - r + a, y1 - r + b), c
-            b = b + 1: e = e + b + b
-            If e > 0 Then a = a - 1: e = e - a - a
+                PSet (x + r - b, y + r - a), c: PSet (x1 - r + b, y + r - a), c
+                PSet (x + r - a, y + r - b), c: PSet (x1 - r + a, y + r - b), c
+                PSet (x + r - b, y1 - r + a), c: PSet (x1 - r + b, y1 - r + a), c
+                PSet (x + r - a, y1 - r + b), c: PSet (x1 - r + a, y1 - r + b), c
+                b = b + 1: e = e + b + b
+                If e > 0 Then a = a - 1: e = e - a - a
             Loop
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECTFILL = TRUE Then
     $If ROUNDRECTFILL_BM = UNDEFINED Then
-            $Let ROUNDRECTFILL_BM = TRUE
-            Sub RoundRectFill (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
+        $Let ROUNDRECTFILL_BM = TRUE
+        Sub RoundRectFill (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
             Dim As Long a, b, e, r
 
             r = radius
@@ -1315,21 +1185,21 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ROUNDRECTFILL = TRUE T
             a = r: b = 0: e = -a
 
             Do While a >= b
-            Line (x + r - b, y + r - a)-(x1 - r + b, y + r - a), c, BF
-            Line (x + r - a, y + r - b)-(x1 - r + a, y + r - b), c, BF
-            Line (x + r - b, y1 - r + a)-(x1 - r + b, y1 - r + a), c, BF
-            Line (x + r - a, y1 - r + b)-(x1 - r + a, y1 - r + b), c, BF
-            b = b + 1: e = e + b + b
-            If e > 0 Then a = a - 1: e = e - a - a
+                Line (x + r - b, y + r - a)-(x1 - r + b, y + r - a), c, BF
+                Line (x + r - a, y + r - b)-(x1 - r + a, y + r - b), c, BF
+                Line (x + r - b, y1 - r + a)-(x1 - r + b, y1 - r + a), c, BF
+                Line (x + r - a, y1 - r + b)-(x1 - r + a, y1 - r + b), c, BF
+                b = b + 1: e = e + b + b
+                If e > 0 Then a = a - 1: e = e - a - a
             Loop
-            End Sub
+        End Sub
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKLINE = TRUE Then
     $If THICKLINE_BM = UNDEFINED Then
-            $Let THICKLINE_BM = TRUE
-            Sub ThickLine (x1, y1, x2, y2, thickness, colour As _Unsigned Long)
+        $Let THICKLINE_BM = TRUE
+        Sub ThickLine (x1, y1, x2, y2, thickness, colour As _Unsigned Long)
             'orientation of line is set in the middle of line thickness
             Static tempimage As Long, m As _MEM
             Dim ht As _Float: ht = thickness / 2 'half thickness
@@ -1347,14 +1217,14 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKLINE = TRUE Then
             tax3 = x2 + ht * Cos(tb): tay3 = y2 + ht * Sin(tb)
             _MapTriangle (0, 0)-(0, 0)-(0, 0), tempimage To(tax1, tay1)-(tax2, tay2)-(tax4, tay4)
             _MapTriangle (0, 0)-(0, 0)-(0, 0), tempimage To(tax2, tay2)-(tax3, tay3)-(tax4, tay4)
-            End Sub
+        End Sub
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKCIRCLE = TRUE Then
     $If THICKCIRCLE_BM = UNDEFINED Then
-            $Let THICKCIRCLE_BM = TRUE
-            Sub ThickCircle (x As Single, y As Single, radius As Single, thickness As Single, colour As _Unsigned Long)
+        $Let THICKCIRCLE_BM = TRUE
+        Sub ThickCircle (x As Single, y As Single, radius As Single, thickness As Single, colour As _Unsigned Long)
             Dim rp As Single, rm As Single, rp2 As Single, rm2 As Single
             Dim sm As Single, rpi2 As Single, rmi2 As Single, sp As Single
             Dim i As Single
@@ -1364,63 +1234,63 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_THICKCIRCLE = TRUE The
             rp2 = rp ^ 2
             rm2 = rm ^ 2
             For i = -rp To -rm Step .2
-            rpi2 = rp2 - i ^ 2
-            sp = Sqr(rpi2)
-            Line (x + i, y)-(x + i, y + sp), colour, BF
-            Line (x + i, y)-(x + i, y - sp), colour, BF
+                rpi2 = rp2 - i ^ 2
+                sp = Sqr(rpi2)
+                Line (x + i, y)-(x + i, y + sp), colour, BF
+                Line (x + i, y)-(x + i, y - sp), colour, BF
             Next
             For i = -rm To 0 Step .2
-            rpi2 = rp2 - i ^ 2
-            rmi2 = rm2 - i ^ 2
-            sm = Sqr(rmi2)
-            sp = Sqr(rpi2)
-            Line (x + i, y + sm)-(x + i, y + sp), colour, BF
-            Line (x - i, y + sm)-(x - i, y + sp), colour, BF
-            Line (x + i, y - sm)-(x + i, y - sp), colour, BF
-            Line (x - i, y - sm)-(x - i, y - sp), colour, BF
+                rpi2 = rp2 - i ^ 2
+                rmi2 = rm2 - i ^ 2
+                sm = Sqr(rmi2)
+                sp = Sqr(rpi2)
+                Line (x + i, y + sm)-(x + i, y + sp), colour, BF
+                Line (x - i, y + sm)-(x - i, y + sp), colour, BF
+                Line (x + i, y - sm)-(x + i, y - sp), colour, BF
+                Line (x - i, y - sm)-(x - i, y - sp), colour, BF
             Next
             For i = rm To rp Step .2
-            rpi2 = rp2 - i ^ 2
-            sp = Sqr(rpi2)
-            Line (x + i, y)-(x + i, y + sp), colour, BF
-            Line (x + i, y)-(x + i, y - sp), colour, BF
+                rpi2 = rp2 - i ^ 2
+                sp = Sqr(rpi2)
+                Line (x + i, y)-(x + i, y + sp), colour, BF
+                Line (x + i, y)-(x + i, y - sp), colour, BF
             Next
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_QUADFILL = TRUE Then
     $If QUADFILL_BM = UNDEFINED Then
-            $Let QUADFILL_BM = TRUE
-            $Let INCLUDE_TRIANLGEFILL = TRUE
-            Sub QuadFill (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
+        $Let QUADFILL_BM = TRUE
+        $Let INCLUDE_TRIANLGEFILL = TRUE
+        Sub QuadFill (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
             TriangleFill x1, y1, x2, y2, x3, y3, K
             TriangleFill x3, y3, x4, y4, x1, y1, K
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_TRIANGLEFILL = TRUE Then
     $If TRIANGLEFILL_BM = UNDEFINED Then
-            $Let TRIANGLEFILL_BM = TRUE
-            Sub TriangleFill (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+        $Let TRIANGLEFILL_BM = TRUE
+        Sub TriangleFill (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
             $Checking:Off
             Static a&, m As _MEM
             If a& = 0 Then a& = _NewImage(1, 1, 32): m = _MemImage(a&)
             _MemPut m, m.OFFSET, K
             _MapTriangle _Seamless(0, 0)-(0, 0)-(0, 0), a& To(x1, y1)-(x2, y2)-(x3, y3)
             $Checking:On
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_CIRCLEFILL = TRUE Then
     $If CIRCLEFILL_BM = UNDEFINED Then
-            $Let CIRCLEFILL_BM = TRUE
-            Sub CircleFill (CX As Integer, CY As Integer, R As Integer, C As _Unsigned Long)
+        $Let CIRCLEFILL_BM = TRUE
+        Sub CircleFill (CX As Integer, CY As Integer, R As Integer, C As _Unsigned Long)
             ' CX = center x coordinate
             ' CY = center y coordinate
             '  R = radius
@@ -1434,28 +1304,28 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_CIRCLEFILL = TRUE Then
             If Radius = 0 Then PSet (CX, CY), C: Exit Sub
             Line (CX - X, CY)-(CX + X, CY), C, BF
             While X > Y
-            RadiusError = RadiusError + Y * 2 + 1
-            If RadiusError >= 0 Then
-            If X <> Y + 1 Then
-            Line (CX - Y, CY - X)-(CX + Y, CY - X), C, BF
-            Line (CX - Y, CY + X)-(CX + Y, CY + X), C, BF
-            End If
-            X = X - 1
-            RadiusError = RadiusError - X * 2
-            End If
-            Y = Y + 1
-            Line (CX - X, CY - Y)-(CX + X, CY - Y), C, BF
-            Line (CX - X, CY + Y)-(CX + X, CY + Y), C, BF
+                RadiusError = RadiusError + Y * 2 + 1
+                If RadiusError >= 0 Then
+                    If X <> Y + 1 Then
+                        Line (CX - Y, CY - X)-(CX + Y, CY - X), C, BF
+                        Line (CX - Y, CY + X)-(CX + Y, CY + X), C, BF
+                    End If
+                    X = X - 1
+                    RadiusError = RadiusError - X * 2
+                End If
+                Y = Y + 1
+                Line (CX - X, CY - Y)-(CX + X, CY - Y), C, BF
+                Line (CX - X, CY + Y)-(CX + X, CY + Y), C, BF
             Wend
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSEFILL = TRUE Then
     $If ELLIPSEFILL_BM = UNDEFINED Then
-            $Let ELLIPSEFILL_BM = TRUE
-            Sub EllipseFill (CX As Integer, CY As Integer, a As Integer, b As Integer, C As _Unsigned Long)
+        $Let ELLIPSEFILL_BM = TRUE
+        Sub EllipseFill (CX As Integer, CY As Integer, a As Integer, b As Integer, C As _Unsigned Long)
             ' CX = center x coordinate
             ' CY = center y coordinate
             '  a = semimajor axis
@@ -1472,20 +1342,20 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSEFILL = TRUE The
             h2w2 = h2 * w2
             Line (CX - a, CY)-(CX + a, CY), C, BF
             Do While y < b
-            y = y + 1
-            x = Sqr((h2w2 - y * y * w2) \ h2)
-            Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
-            Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
+                y = y + 1
+                x = Sqr((h2w2 - y * y * w2) \ h2)
+                Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
+                Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
             Loop
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSETILT = TRUE Then
     $If ELLIPSETILT_BM = UNDEFINED Then
-            $Let ELLLIPSETILT_BM = TRUE
-            Sub EllipseTilt (CX, CY, a, b, ang, C As _Unsigned Long)
+        $Let ELLLIPSETILT_BM = TRUE
+        Sub EllipseTilt (CX, CY, a, b, ang, C As _Unsigned Long)
             '  CX = center x coordinate
             '  CY = center y coordinate
             '  a = semimajor axis
@@ -1494,25 +1364,25 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSETILT = TRUE The
             '  C = fill color
             Dim As _Float k, i, j
             For k = 0 To 6.283185307179586 + .025 Step .025
-            i = a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
-            j = -a * Cos(k) * Sin(ang) + b * Sin(k) * Cos(ang)
-            i = i + CX
-            j = -j + CY
-            If k <> 0 Then
-            Line -(i, j), C
-            Else
-            PSet (i, j), C
-            End If
+                i = a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
+                j = -a * Cos(k) * Sin(ang) + b * Sin(k) * Cos(ang)
+                i = i + CX
+                j = -j + CY
+                If k <> 0 Then
+                    Line -(i, j), C
+                Else
+                    PSet (i, j), C
+                End If
             Next
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSETILTFILL = TRUE Then
     $If ELLIPSETILTFILL_BM = UNDEFINED Then
-            $Let ELLIPSETILTFILL_BM = TRUE
-            Sub EllipseTiltFill (destHandle&, CX, CY, a, b, ang, C As _Unsigned Long)
+        $Let ELLIPSETILTFILL_BM = TRUE
+        Sub EllipseTiltFill (destHandle&, CX, CY, a, b, ang, C As _Unsigned Long)
             '  destHandle& = destination handle
             '  CX = center x coordinate
             '  CY = center y coordinate
@@ -1532,64 +1402,79 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_IMAGE = TRUE OR INCLUDE_ELLIPSETILTFILL = TRUE
             _Dest tef&
             _Source tef&
             For k = 0 To 6.283185307179586 + .025 Step .025
-            i = max + a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
-            j = max + a * Cos(k) * Sin(ang) - b * Sin(k) * Cos(ang)
-            If k <> 0 Then
-            Line (lasti, lastj)-(i, j), prc
-            Else
-            PSet (i, j), prc
-            End If
-            lasti = i: lastj = j
+                i = max + a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
+                j = max + a * Cos(k) * Sin(ang) - b * Sin(k) * Cos(ang)
+                If k <> 0 Then
+                    Line (lasti, lastj)-(i, j), prc
+                Else
+                    PSet (i, j), prc
+                End If
+                lasti = i: lastj = j
             Next
             Dim xleft(mx2) As Integer, xright(mx2) As Integer, x As Integer, y As Integer
             For y = 0 To mx2
-            x = 0
-            While Point(x, y) <> prc And x < mx2
-            x = x + 1
-            Wend
-            xleft(y) = x
-            While Point(x, y) = prc And x < mx2
-            x = x + 1
-            Wend
-            While Point(x, y) <> prc And x < mx2
-            x = x + 1
-            Wend
-            If x = mx2 Then xright(y) = xleft(y) Else xright(y) = x
+                x = 0
+                While Point(x, y) <> prc And x < mx2
+                    x = x + 1
+                Wend
+                xleft(y) = x
+                While Point(x, y) = prc And x < mx2
+                    x = x + 1
+                Wend
+                While Point(x, y) <> prc And x < mx2
+                    x = x + 1
+                Wend
+                If x = mx2 Then xright(y) = xleft(y) Else xright(y) = x
             Next
             _Dest destHandle&
             For y = 0 To mx2
-            If xleft(y) <> mx2 Then Line (xleft(y) + CX - max, y + CY - max)-(xright(y) + CX - max, y + CY - max), C, BF
+                If xleft(y) <> mx2 Then Line (xleft(y) + CX - max, y + CY - max)-(xright(y) + CX - max, y + CY - max), C, BF
             Next
             _Dest D: _Dest S
             _FreeImage tef&
-            End Sub
+        End Sub
     $End If
 $End If
 
 
 $If INCLUDE_ALL = TRUE OR INCLUDE_FILE = TRUE OR INCLUDE_GETFILELIST = TRUE Then
     $If GETFILELIST_BM = UNDEFINED Then
-            $Let GETFILELIST_BM = TRUE
-            Sub GetFileList (SearchDirectory As String)
-            Dim As Long flags, file_size, FileCount, length
-            Dim As String nam
-            ReDim _Preserve FileList(100) As String
-            FileCount = 0
-            If load_dir(SearchDirectory) Then
-            Do
-            length = has_next_entry
-            If length > -1 Then
-            nam$ = Space$(length)
-            get_next_entry nam$, flags, file_size
-            FileCount = FileCount + 1
-            If FileCount > UBound(FileList) Then ReDim _Preserve FileList(UBound(FileList) + 100) As String
-            FileList(FileCount) = nam$
-            End If
-            Loop Until length = -1
-            close_dir
-            End If
+        Sub Disk.File.List (SearchDirectory As String, Extension As String)
+            Dim As Long FileCount
+            Dim As String Search, File
+            ReDim _Preserve FileList(1000) As String
+            If SearchDirectory = "" Then SearchDirectory = _CWD$
+            If Extension = "" Then Extension = "*"
+            Search = SearchDirectory + Extension
+            File = _Files$(Search)
+            Do While Len(File)
+                If _FileExists(File) Then
+                    FileCount = FileCount + 1
+                    If FileCount > UBound(FileList) Then ReDim _Preserve FileList(UBound(FileList) + 1000) As String
+                    FileList(FileCount) = File
+                End If
+                File = _Files$
+            Loop
             ReDim _Preserve FileList(FileCount) As String
-            End Sub
+        End Sub
+
+        Sub Disk.Dir.List (SearchDirectory As String, SearchFor As String)
+            Dim As Long DirCount
+            Dim As String Search, Dir
+            ReDim _Preserve DirList(1000) As String
+            If SearchDirectory = "" Then SearchDirectory = _CWD$
+            Search = SearchDirectory + SearchFor
+            Dir = _Files$(Search)
+            Do While Len(Dir)
+                If _DirExists(Dir) Then
+                    DirCount = DirCount + 1
+                    If DirCount > UBound(DirList) Then ReDim _Preserve DirList(UBound(DirList) + 1000) As String
+                    DirList(DirCount) = Dir
+                End If
+                Dir = _Files$
+            Loop
+            ReDim _Preserve DirList(DirCount) As String
+        End Sub
     $End If
 $End If
 
@@ -1602,19 +1487,19 @@ $End If
 'DECLARED LIBRARY Code which is added as needed automatically from the routines above.
 $If INCLUDE_ALL = TRUE  OR INCLUDE_GLUT OR INCLUDE_GLUTGET = TRUE Then
     $If GLUTGET_DECLARED = UNDEFINED Then
-            $Let GLUTGET_DECLARED = TRUE
-            Declare Library
+        $Let GLUTGET_DECLARED = TRUE
+        Declare Library
             Function glutGet& (ByVal what&)
-            End Declare
+        End Declare
     $End If
 $End If
 
 $If INCLUDE_ALL = TRUE  OR INCLUDE_GLUT OR INCLUDE_GLUTRESHAPEWINDOW = TRUE Then
     $If GLUTRESHAPEWINDOW_DECLARED = UNDEFINED Then
-            $Let GLUTRESHAPEWINDOW_DECLARED = TRUE
-            Declare Library
-            Sub glutReshapeWindow (ByVal width&, Byval height&)
-            End Declare
+        $Let GLUTRESHAPEWINDOW_DECLARED = TRUE
+        Declare Library
+            Sub glutReshapeWindow (ByVal width&, ByVal height&)
+        End Declare
     $End If
 $End If
 
@@ -1637,33 +1522,21 @@ Declare Library "SetMemory"
     $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_SETMEMORYBYTE = TRUE Then
         $If SETMEMORYBYTE_DECLARED = UNDEFINED Then
             $Let SETMEMORYBYTE_DECLARED = TRUE
-            Sub SetMemoryByte (ByVal dst As _Unsigned _Offset, Byval elements As _Unsigned Long, Byval value As _Unsigned _Byte)
+            Sub SetMemoryByte (ByVal dst As _Unsigned _Offset, ByVal elements As _Unsigned Long, ByVal value As _Unsigned _Byte)
         $End If
     $End If
 
     $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_SETMEMORYINTEGER = TRUE Then
         $If SETMEMORYINTEGER_DECLARED = UNDEFINED Then
             $Let SETMEMORYINTEGER_DECLARED = TRUE
-            Sub SetMemoryInteger (ByVal dst As _Unsigned _Offset, Byval elements As _Unsigned Long, Byval value As _Unsigned Integer)
+            Sub SetMemoryInteger (ByVal dst As _Unsigned _Offset, ByVal elements As _Unsigned Long, ByVal value As _Unsigned Integer)
         $End If
     $End If
 
     $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_SETMEMORYLONG = TRUE Then
         $If SETMEMORYLONG_DECLARED = UNDEFINED Then
             $Let SETMEMORYLONG_DECLARED = TRUE
-            Sub SetMemoryLong (ByVal dst As _Unsigned _Offset, Byval elements As _Unsigned Long, Byval value As _Unsigned Long)
-        $End If
-    $End If
-End Declare
-
-Declare CustomType Library ".\direntry"
-    $If INCLUDE_ALL = TRUE OR INCLUDE_FILE = TRUE OR INCLUDE_GETFILELIST = TRUE Then
-        $If GETFILELIST_DECLARED = UNDEFINED Then
-            $Let GETFILELIST_DECLARED = TRUE
-            Function load_dir& (s As String)
-            Function has_next_entry& ()
-            Sub close_dir ()
-            Sub get_next_entry (s As String, flags As Long, file_size As Long)
+            Sub SetMemoryLong (ByVal dst As _Unsigned _Offset, ByVal elements As _Unsigned Long, ByVal value As _Unsigned Long)
         $End If
     $End If
 End Declare

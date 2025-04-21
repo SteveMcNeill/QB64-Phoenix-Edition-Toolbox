@@ -14,7 +14,7 @@ $End If
 $If INCLUDE_ALL = TRUE OR INCLUDE_FILE = TRUE OR INCLUDE_GETFILELIST = TRUE Then
     $If GETFILELIST_BI = UNDEFINED Then
             $Let GETFILELIST_BI = TRUE
-            ReDim Shared FileList(0) As String
+            ReDim Shared FileList(0) As String, DirList(0) As String
     $End If
 $End If
 
