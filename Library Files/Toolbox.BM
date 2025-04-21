@@ -1,6 +1,6 @@
-$Let INCLUDE_ALL = TRUE
-'$Include:'Toolbox.BI'
-Option _Explicit
+'$Let INCLUDE_ALL = TRUE
+''$Include:'Toolbox.BI'
+'Option _Explicit
 'Let above is only enabled to allow the auto-formatting and syntax checking to run.
 'Be certain to disable if before saving or using this file.
 
@@ -11,13 +11,13 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_CONVERT OR INCLUDE_CONVE
             $Checking:Off
             Dim m As _MEM 'Define a memblock
             m = _Mem(value) 'Point it to use value
-            $If 64BIT Then
+        $If 64BIT Then
                 'On 64 bit OSes, an OFFSET is 8 bytes in size.  We need an Integer64 to store it.
                 Dim temp As _Integer64
-            $Else
+        $Else
                 'However, on 32 bit OSes, an OFFSET is only 4 bytes.  We need to put it into a LONG variable first
                 dim temp as long
-            $End If
+        $End If
             _MemGet m, m.OFFSET, temp 'Like this
             _MemFree m 'Free the memblock
             $Checking:On
@@ -68,11 +68,11 @@ $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_MEMSORT = TRUE Then
         Sub MemSort (m As _MEM)
             Dim i As _Unsigned Long
             Dim As Long DataType, i1, gap, swapped
-            $If 64BIT Then
+        $If 64BIT Then
                 Dim ES As _Integer64, EC As _Integer64
-            $Else
+        $Else
                 DIM ES AS LONG, EC AS LONG
-            $End If
+        $End If
 
             If Not m.TYPE And 65536 Then Exit Sub 'We won't work without an array
             If m.TYPE And 1024 Then DataType = 10
@@ -1503,20 +1503,20 @@ $If INCLUDE_ALL = TRUE  OR INCLUDE_GLUT OR INCLUDE_GLUTRESHAPEWINDOW = TRUE Then
     $End If
 $End If
 
-Declare Library "isnan"
-    $If INCLUDE_ALL = TRUE  OR INCLUDE_MATH OR INCLUDE_ISINF = TRUE Then
-        $If ISINF_DECLARED = UNDEFINED Then
-            $Let ISINF_DECLARED = TRUE
-            Function IsInf% (ByVal n As _Float)
-        $End If
-    $End If
-    $If INCLUDE_ALL = TRUE  OR INCLUDE_MATH OR INCLUDE_ISNAN = TRUE Then
-        $If ISNAN_DECLARED = UNDEFINED Then
-            $Let ISNAN_DECLARED = TRUE
-            Function IsNan% (ByVal n As _Float)
-        $End If
-    $End If
-End Declare
+'Declare Library "isnan"
+'    $If INCLUDE_ALL = TRUE  OR INCLUDE_MATH OR INCLUDE_ISINF = TRUE Then
+'        $If ISINF_DECLARED = UNDEFINED Then
+'            $Let ISINF_DECLARED = TRUE
+'            Function IsInf% (ByVal n As _Float)
+'        $End If
+'    $End If
+'    $If INCLUDE_ALL = TRUE  OR INCLUDE_MATH OR INCLUDE_ISNAN = TRUE Then
+'        $If ISNAN_DECLARED = UNDEFINED Then
+'            $Let ISNAN_DECLARED = TRUE
+'            Function IsNan% (ByVal n As _Float)
+'        $End If
+'    $End If
+'End Declare
 
 Declare Library "SetMemory"
     $If INCLUDE_ALL = TRUE OR INCLUDE_MEM = TRUE OR INCLUDE_SETMEMORYBYTE = TRUE Then

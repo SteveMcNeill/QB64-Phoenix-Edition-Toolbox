@@ -5,5 +5,5 @@
 int IsNan(long double n);
 int IsInf(long double n);
 
-IsNan(long double n) { return -isnan(n); }
-IsInf(long double n) { return -isinf(n); }
+int IsNan(long double n) { return -isnan(n); }
+int IsInf(long double n) { return -isinf(n); }
