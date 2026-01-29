@@ -1,0 +1,933 @@
+'Commonly used CONST values which can be extremely useful inside programs:
+Const True%% = -1%%
+Const False%% = 0%%
+$If WIN Then
+    Const Slash$ = "\"
+$Else
+    Const Slash$ = "/"
+$End If
+Dim Shared As String MyAppPath, MyAppName, MyAppFullPath, Quote '  These are shared strings, but they need to be gotten at the start of a program.
+MyAppPath = _CWD$ '                                                I'll grab them here and just pretend that they're CONST.
+MyAppName = Mid$(Command$(0), _InStrRev(Command$(0), Slash$) + 1) 'Shhh... don't tell anyone.  It'll be our little secret!
+MyAppFullPath = MyAppPath + Slash + MyAppName
+Quote = Chr$(34)
+
+Const Key_Backspace = 8
+Const Key_Tab = 9
+Const Key_Enter = 13
+Const Key_Shift = 16
+Const Key_Control = 17
+Const Key_Alt = 18
+Const Key_CapsLock = 20
+Const Key_ESC = 27
+Const Key_Space = 32
+Const Key_LeftShift = 100304
+Const Key_RightShift = 100303
+Const Key_LeftCtrl = 100306
+Const Key_RightCtrl = 100305
+Const Key_LeftAlt = 100308
+Const Key_RightAlt = 100307
+Const Key_PageUp = 18688
+Const Key_PageDown = 20736
+Const Key_LeftArrow = 19200, Key_Left = 19200
+Const Key_RightArrow = 19712, Key_Right = 19712
+Const Key_UpArrow = 18432, Key_Up = 18432
+Const Key_DownArrow = 20480, Key_Down = 20480
+Const Key_F1 = 15104
+Const Key_F2 = 15360
+Const Key_F3 = 15616
+Const Key_F4 = 15872
+Const Key_F5 = 16128
+Const Key_F6 = 16384
+Const Key_F7 = 16640
+Const Key_F8 = 16896
+Const Key_F9 = 17152
+Const Key_F10 = 17408
+Const Key_F11 = 34048
+Const Key_F12 = 34304
+Const Key_Home = 18176
+Const Key_Delete = 21248
+Const Key_Insert = 20992
+Const Key_Win = 100311
+Const Key_Menu = 100319
+Const Key_PrintScreen = 900044
+Const Key_ScrollLock = 100302
+Const Key_Accent = 96
+Const Key_Tilde = 126
+Const Key_1 = 49
+Const Key_2 = 50
+Const Key_3 = 51
+Const Key_4 = 52
+Const Key_5 = 53
+Const Key_6 = 54
+Const Key_7 = 55
+Const Key_8 = 56
+Const Key_9 = 57
+Const Key_0 = 48
+Const Key_Minus = 45, Key_Dash = 45, Key_Subtract = 45
+Const Key_Equal = 61
+Const Key_Exclaim = 33
+Const Key_At = 64
+Const Key_Pound = 35
+Const Key_Dollar = 36
+Const Key_Percent = 37
+Const Key_Power = 94, Key_Caret = 94
+Const Key_And = 38
+Const Key_Star = 42, Key_Multiply = 42
+Const Key_LeftParen = 40
+Const Key_RightParen = 41
+Const Key_Underscore = 95
+Const Key_Plus = 43, Key_Add = 43
+Const Key_LowerCase = 32 '      Add to key values to get lowercase characters
+Const Key_A = 65, Key_A_Low = 97 'for example, 65 is A.  65 + 32 = a (97)
+Const Key_B = 66, Key_B_Low = 98 'So it's basically IF Key_B AND Key_LowerCase THEN 'it's a "b"
+Const Key_C = 67, Key_C_Low = 99
+Const Key_D = 68, Key_D_Low = 10
+Const Key_E = 69, Key_E_Low = 101
+Const Key_F = 70, Key_F_Low = 102
+Const Key_G = 71, Key_G_Low = 103
+Const Key_H = 72, Key_H_Low = 104
+Const Key_I = 73, Key_I_Low = 105
+Const Key_J = 74, Key_J_Low = 106
+Const Key_K = 75, Key_K_Low = 107
+Const Key_L = 76, Key_L_Low = 108
+Const Key_M = 77, Key_M_Low = 109
+Const Key_N = 78, Key_N_Low = 110
+Const Key_O = 79, Key_O_Low = 111
+Const Key_P = 80, Key_P_Low = 112
+Const Key_Q = 81, Key_Q_Low = 113
+Const Key_R = 82, Key_R_Low = 114
+Const Key_S = 83, Key_S_Low = 115
+Const Key_T = 84, Key_T_Low = 116
+Const Key_U = 85, Key_U_Low = 117
+Const Key_V = 86, Key_V_Low = 118
+Const Key_W = 87, Key_W_Low = 119
+Const Key_X = 88, Key_X_Low = 110
+Const Key_Y = 89, Key_Y_Low = 111
+Const Key_Z = 90, Key_Z_Low = 112
+Const Key_LeftBrace = 91, Key_LeftBracket = 91
+Const Key_RightBrace = 93, Key_RightBracket = 93
+Const Key_BackSlash = 92
+Const Key_LeftCurly = 123
+Const Key_RightCurly = 125
+Const Key_Pipe = 124
+Const Key_Semicolon = 59
+Const Key_Colon = 58
+Const Key_Apostrophy = 39
+Const Key_Quote = 34
+Const Key_Comma = 44
+Const Key_Period = 46, Key_Dot = 46
+Const Key_ForwardSlash = 47, Key_Slash = 47
+Const Key_LessThan = 60
+Const Key_GreaterThan = 62
+Const Key__QuestionMark = 63, Key_Question = 63
+'Note that the following keys are listed as 900000+.  These are KeyHit codes from my KeyHit library and not _KEYHIT values.
+'For _KEYHIT values, drop the 900 in front, and QB64-PE will report the other values on a KEYUP event only.
+'So you can read Mute, but it'll *ONLY* read as -173, and that's *only* when you release the key.
+'None of these read at all for us on keydown events.
+Const Key_Mute = 900173
+Const Key_VolUp = 900174
+Const Key_VolDown = 900175
+Const Key_Stop = 900178
+Const Key_Rewind = 900177
+Const Key_Forward = 900176
+Const Key_Play = 900179
+'And for the following, these are also 900000+ KeyHit library codes.  These are mouse events that QB64-PE simply fails to recognize
+'at all.  These neither register with _KEYHIT as a keydown, nor a keyup event.  As far as _KEYHIT is concerned, these keys
+'simply don't exist!
+Const Key_LeftMouse = 900001
+Const Key_RightMouse = 900002
+Const Key_MiddleMouse = 900004
+Const Key_Mouse4 = 900005
+Const Key_Mouse5 = 900006
+
+
+'Option _Explicit
+
+Screen _NewImage(800, 600, 32)
+'$Console:Only
+
+Type Font_Name_Type
+    Name As String
+    FileName As String
+End Type
+ReDim As Font_Name_Type Fonts(0), MonoFonts(0)
+Screen _NewImage(1280, 720, 32)
+GetFontList Fonts()
+GetMonoFontList MonoFonts()
+numbered = -1 'number our quick list
+l = 20 'number of lines to print to the screen
+w = 50 'width to print to the screen
+
+Do
+    Cls
+    _Limit 30
+    k = _KeyHit
+    Select Case k
+        Case 20480: s = s + 1: If s > UBound(Fonts) Then s = UBound(Fonts)
+        Case 18432: s = s - 1: If s < 0 Then s = 0
+    End Select
+    Locate 3, 20: Print "FONT NAME"
+    Locate 3, 70: Print "FILE NAME"
+    Locate 5
+    start = s: finish = s + l - 1
+    For i = start To finish
+        If i > UBound(Fonts) Then _Continue
+        If numbered Then counter$ = LTrim$(Str$(i)) + ") "
+        Locate , 10: Print counter$ + Left$(Fonts(i).Name, w);
+        Locate , 70: Print Fonts(i).FileName
+    Next
+    Locate 28, 15: Print "MONOSPACE FONT NAME"
+    Locate 28, 70: Print "FILE NAME"
+    Locate 30
+    For i1 = 0 To UBound(MonoFonts)
+        If numbered Then counter$ = LTrim$(Str$(i1)) + ") "
+        Locate , 10: Print counter$ + Left$(MonoFonts(i1).Name, w);
+        Locate , 70: Print Left$(MonoFonts(i1).FileName, w)
+    Next
+
+    _Display
+Loop Until k = 27
+System
+
+
+
+Sub GetFontList (Fonts() As Font_Name_Type)
+    Shell "Powershell -command " + Chr$(34) + "$Host.UI.RawUI.BufferSize = New-Object Management.Automation.Host.Size (500, 50); Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'|Out-File -Encoding Ascii 'temp_fontlist.txt'" + Chr$(34)
+
+
+    If _FileExists("temp_fontlist.txt") Then
+        f = FreeFile
+        Open "temp_fontlist.txt" For Binary As #f
+        ReDim Fonts(10000) As Font_Name_Type
+        Do Until EOF(1)
+            Line Input #1, temp$
+            sep = InStr(temp$, ":")
+            l$ = _Trim$(Left$(temp$, sep - 1))
+            r$ = _Trim$(Mid$(temp$, sep + 1))
+            If l$ <> "PSPath" Then
+                If l$ <> "" Then '                        skip the blank space lines
+                    Fonts(count).Name = l$
+                    Fonts(count).FileName = r$
+                    count = count + 1
+                End If
+            Else
+                Exit Do '                                we can stop reading files at this point (according to my tests)
+            End If
+        Loop
+        Close f
+        Kill "temp_fontlist.txt" '                        clean up the file after we're done with parsing it.
+        count = count - 1 '                              adjust for that last count + 1, which we didn't use.
+        ReDim _Preserve Fonts(count) As Font_Name_Type
+
+        'a quick and simple combsort to make certain our list is in alphabetical order
+        gap = count
+        Do
+            gap = 10 * gap \ 13
+            If gap < 1 Then gap = 1
+            i = 0
+            swapped = 0
+            Do
+                If Fonts(i).Name > Fonts(i + gap).Name Then
+                    Swap Fonts(i).Name, Fonts(i + gap).Name
+                    Swap Fonts(i).FileName, Fonts(i + gap).FileName
+                    swapped = -1
+                End If
+                i = i + 1
+            Loop Until i + gap > count
+        Loop Until gap = 1 And swapped = 0
+    Else 'very poor error handling here
+        Print "Powershell failed to create font list."
+        Beep
+        Sleep
+        Exit Sub
+    End If
+End Sub
+
+Sub GetMonoFontList (MonoFonts() As Font_Name_Type)
+    ReDim Fonts(10000) As Font_Name_Type
+    ReDim MonoFonts(10000) As Font_Name_Type
+    GetFontList Fonts()
+    count = UBound(Fonts)
+    newcount = 0
+    f = _Font
+    For i = 0 To count
+        f$ = Fonts(i).FileName
+        If UCase$(Right$(f$, 4)) = ".FON" Then _Continue
+        temp = _LoadFont(f$, 12)
+        _Font temp
+        'no need to check all characters.  I chose to just check the ones that tend to vary the greatest
+        pw = _PrintWidth("W"): pw1 = _PrintWidth("l")
+        If pw = pw1 Then
+            pw2 = _PrintWidth(" ")
+            If pw = pw2 Then
+                pw3 = _PrintWidth(".")
+                If pw = pw3 Then
+                    MonoFonts(newcount).Name = Fonts(i).Name
+                    MonoFonts(newcount).FileName = Fonts(i).FileName
+                    newcount = newcount + 1
+                End If
+            End If
+        End If
+        _Font f
+        _FreeFont temp
+    Next
+    newcount = newcount - 1
+    If newcount >= 0 Then ReDim _Preserve MonoFonts(newcount) As Font_Name_Type
+End Sub
+
+Sub Disk.File.List.FilterForExtension (FileList() As String, filter As String)
+    'note that I haven't added filers for wild cards and such, this is for set patterns, with a comma delimiter
+    Dim As String temp, process
+    ReDim As String filters(1000), tempList(0)
+    Dim As Long i, j, p, count, listCount
+    temp = filter
+    Do
+        p = InStr(temp, ",")
+        If p Then
+            process$ = Left$(temp, p - 1) 'strip off the symbols
+            temp = Mid$(temp, p + 1)
+        Else
+            process$ = temp
+        End If
+        count = count + 1 'the number of filters
+        filters(count) = process$
+    Loop Until process$ = temp
+
+    ReDim tempList(UBound(FileList)) As String
+
+    For i = 1 To UBound(FileList)
+        temp = FileList(i)
+        For j = 1 To count
+            If InStr(temp, filters(j)) Then
+                listCount = listCount + 1
+                tempList(listCount) = FileList(i)
+                Exit For 'no need to keep looking, we found an item that matches our search criteria
+            End If
+        Next
+    Next
+    For i = 1 To listCount: FileList(i) = tempList(i): Next
+    ReDim _Preserve FileList(listCount) As String
+End Sub
+
+
+Sub Disk.File.List.Recursive (SearchDir As String, Extension As String, ReturnArray() As String)
+    ReDim TempArray(0) As String
+    Dim As Long i, totalcount
+    totalcount = UBound(ReturnArray)
+    Disk.File.List SearchDir, Extension, -1, TempArray() 'get a temp array of data
+    For i = 1 To UBound(TempArray)
+        totalcount = totalcount + 1
+        If totalcount > UBound(ReturnArray) Then ReDim _Preserve ReturnArray(totalcount + 10000) As String
+        ReturnArray(totalcount) = TempArray(i)
+    Next
+    ReDim _Preserve ReturnArray(totalcount) As String
+    For i = 1 To UBound(TempArray)
+        If _DirExists(TempArray(i)) Then Disk.File.List.Recursive TempArray(i), Extension, ReturnArray() 'get a temp array of data
+    Next
+End Sub
+
+Sub Disk.File.List (SearchDir As String, Extension As String, Flag As Long, ReturnArray() As String)
+    'flags are binary bits which represent the following
+    'Note that a quick value of -1 will set all bits and return everything for us
+    '1 -- file listing
+    '2 -- directory listing
+    '4 -- sorted (directory before file, like windows explorer does) -- implies 1 + 2 both are wanted.
+    '8 -- return full path info
+    Dim As Long FileCount, pass
+    Dim As String Search, File, FileSlash
+    ReDim ReturnArray(1000) As String
+    If SearchDir = "" Then SearchDir = _CWD$: If Extension = "" Then Extension = "*"
+    If InStr(_OS$, "WIN") Then FileSlash = "\" Else FileSlash = "/"
+    If Right$(SearchDir, 1) <> "/" _AndAlso Right$(SearchDir, 1) <> "\" Then SearchDir = SearchDir + FileSlash
+    Search = SearchDir + Extension
+    If Flag And 4 Then 'sorted so we get directory listings then files
+        For pass = 1 To 2 'two passes, first to get directory listings then files
+            File = _Files$(Search)
+            Do While Len(File)
+                If File = ".\" _OrElse File = "..\" Then
+
+                Else
+                    If ((pass = 1) _AndAlso _DirExists(SearchDir + File)) _OrElse ((pass = 2) _AndAlso _FileExists(SearchDir + File)) Then
+                        FileCount = FileCount + 1
+                        If FileCount > UBound(ReturnArray) Then ReDim _Preserve ReturnArray(FileCount + 1000) As String
+                        If Flag And 8 Then File = SearchDir + File 'we want the full path info
+                        ReturnArray(FileCount) = File
+                    End If
+                End If
+                File = _Files$
+            Loop
+        Next
+    Else 'unsorted so files and directories are simply listed in alphabetical order
+        File = _Files$(Search) 'one single pass where we just grab all the info at once
+        Do While Len(File)
+            If File <> ".\" _AndAlso File <> "..\" Then
+                If ((Flag And 1) _AndAlso _FileExists(SearchDir + File)) _OrElse ((Flag And 2) _AndAlso _DirExists(SearchDir + File)) Then
+                    FileCount = FileCount + 1
+                    If FileCount > UBound(ReturnArray) Then ReDim _Preserve ReturnArray(FileCount + 1000) As String
+                    If Flag And 8 Then File = SearchDir + File 'we want the full path info
+                    ReturnArray(FileCount) = File
+                End If
+            End If
+            File = _Files$
+        Loop
+    End If
+    ReDim _Preserve ReturnArray(FileCount) As String
+End Sub
+
+
+
+Sub Pause (time As _Float, exclude_code As Long)
+    'exclude_code is the binary value of things we don't want to allow to break Pause
+    '1 = No brealing pause if Window lost focus
+    '2 = No Mouse breaking pause
+    '4 - No Keyboard breaking pause
+    '8 - No Keyup events break pause
+    '16 - No modifier keys breaking pause (Shift/Ctrl/Alt)
+
+    Dim t As _Float, k As Long, d As String
+    d = Date$: t = Timer + time
+    Do
+        _Limit 10 'we're a pause. We don't need to do a bunch of crap per second.
+        If (exclude_code And 1) Then 'don't unpause until window has focus or time has ran out
+            If _WindowHasFocus = 0 Then _Continue
+        End If
+        If (exclude_code And 2) = 0 Then 'mouse clicks break pause
+            While _MouseInput: Wend
+            If _MouseButton(1) Or _MouseButton(2) Then Exit Do
+        End If
+        If (exclude_code And 4) = 0 Then 'we allow keyboard input (of some sort) to break pause
+            k = _KeyHit
+            If (exclude_code And 8) Then If k < 0 Then k = 0 'but we don't allow keyup events to do it
+            If (exclude_code And 16) Then 'here we don't allow modifier keys to do it
+                Select Case k
+                    Case 100304, 100303, -100304, -100303 'shift up/down
+                        _Continue
+                    Case 100306, 100305, -100306, -100305 'ctrl up/down
+                        _Continue
+                    Case 100308, 100307, -100308, -100307 'alt up/down
+                        _Continue
+                End Select
+            End If
+        End If
+        If d <> Date$ Then d = Date$: t = t - 86400 'adjust for midnight by subtracting a day from the counter
+        If time <> 0 And Timer > t Then Exit Do
+        If k <> 0 Then Exit Do
+    Loop
+End Sub
+
+Function Format$ (num As _Float, using$)
+    Static tempimage As Long
+    Dim As Long d, s, i, p
+    Dim As String text
+    If tempimage = 0 Then tempimage = _NewImage(80, 1, 0)
+    d = _Dest: s = _Source
+    _Dest tempimage: _Source tempimage
+    Cls
+    Print Using using$; num;
+    For i = 1 To 80
+        p = Screen(1, i)
+        If p = 0 Then Exit For
+        text$ = text$ + Chr$(p)
+    Next
+    _Dest d: _Source s
+    Format$ = text$
+End Function
+
+Function SwapEnd~&& (num As _Unsigned _Integer64, biteSize As Integer)
+    'One command to swap endianness for int64, long, and integer type variables. Supply the value and the bite size.
+    Dim temp As _Unsigned _Integer64, temp1 As _Unsigned Long, temp2 As _Unsigned Integer
+    Select Case biteSize
+        Case 8 'integer64
+            temp = _ShL(num And &HFF&&, 56) 'byte #1
+            temp = temp Or _ShL(num And &HFF00&&, 40) '2
+            temp = temp Or _ShL(num And &HFF0000&&, 24) '3
+            temp = temp Or _ShL(num And &HFF000000&&, 8) '4
+            temp = temp Or _ShR(num And &HFF00000000&&, 8) '5
+            temp = temp Or _ShR(num And &HFF0000000000&&, 24) '6
+            temp = temp Or _ShR(num And &HFF000000000000&&, 40) '7
+            temp = temp Or _ShR(num And &HFF00000000000000&&, 56) '8
+            SwapEnd = temp
+        Case 4 'long
+            temp1 = _ShL(num And &HFF~&, 24)
+            temp1 = temp1 Or _ShL(num And &HFF00~&, 8)
+            temp1 = temp1 Or _ShR(num And &HFF0000~&, 8)
+            temp1 = temp1 Or _ShR(num And &HFF000000~&, 24)
+            SwapEnd = temp1
+        Case 2 'integer
+            temp2 = temp2 Or _ShL(num And &HFF~%, 8) '1
+            temp2 = temp2 Or _ShR(num And &HFF00~%, 8) '2
+            SwapEnd = temp2
+    End Select
+End Function
+
+Function Convert.HBO$ (in As String) 'Convert Hex, Binary, Oct to Decimal values inside a string
+    'Note that this converts all the hex/binary/octal values inside a whole string.
+    'It doesn't stop at just the first instance to convert
+    Dim As String temp, vc, m, t
+    Dim As Long finished, Cpos, EndPos
+    Dim ub As _Unsigned _Bit, b As _Bit
+    Dim ubyte As _Unsigned _Byte, byte As _Byte
+    Dim ui As _Unsigned Integer, i As Integer
+    Dim ul As _Unsigned Long, l As Long
+    Dim ui64 As _Unsigned _Integer64, i64 As _Integer64
+
+
+    temp = _Trim$(UCase$(in))
+    Do
+        finished = -1
+        Cpos = String.Find(temp, "&H", 1)
+        If Cpos Then '&H located
+            EndPos = 2: finished = 0
+            vc = "01234567889ABCDEF": GoSub endposition 'get the hex characters
+            GoSub typesymbol
+            temp = Left$(temp, Cpos - 1) + " " + m + Mid$(temp, Cpos + EndPos)
+        End If
+        Cpos = String.Find(temp, "&B", 1)
+        If Cpos Then '&B located
+            EndPos = 2: finished = 0
+            vc = "01": GoSub endposition 'get the binary characters
+            GoSub typesymbol
+            temp = Left$(temp, Cpos - 1) + " " + m + Mid$(temp, Cpos + EndPos)
+        End If
+        Cpos = String.Find(temp, "&O", 1)
+        If Cpos Then '&O located
+            EndPos = 2: finished = 0
+            vc = "01234567": GoSub endposition 'get the octal characters
+            GoSub typesymbol
+            temp = Left$(temp, Cpos - 1) + " " + m + Mid$(temp, Cpos + EndPos)
+        End If
+    Loop Until finished
+    Convert.HBO = temp
+    Exit Function
+
+    endposition:
+    Do
+        m = Mid$(temp, Cpos + EndPos, 1)
+        If m = "" Then Exit Do
+        If InStr(vc, m) Then EndPos = EndPos + 1 Else Exit Do
+    Loop
+    Return
+
+    typesymbol:
+    Dim datatype As Long
+    t = Left$(Mid$(temp, Cpos + EndPos, 3) + "  ", 3)
+    m = Mid$(temp, Cpos, EndPos)
+    If Left$(t, 1) = "~" Then 'unsigned
+        t = Mid$(t, 2) 'unsigned + 2 characters to the right for identification
+        Select Case Left$(t, 1)
+            Case "`": ub = Val(m): m = _ToStr$(ub): EndPos = EndPos + 2 'bit
+            Case "%" 'integer or byte
+                Select Case Right$(t, 1)
+                    Case "%": ubyte = Val(m): m = _ToStr$(ubyte): EndPos = EndPos + 3 'byte
+                    Case Else: ui = Val(m): m = _ToStr$(ui): EndPos = EndPos + 2 'integer
+                End Select
+            Case "&" 'long or integer64
+                Select Case Right$(t, 1)
+                    Case "&": ui64 = Val(m): m = _ToStr$(ui64): EndPos = EndPos + 3 'integer64
+                    Case Else: ul = Val(m): m = _ToStr$(ul): EndPos = EndPos + 2 'long
+                End Select
+        End Select
+    Else
+        t = Left$(t, 2)
+        Select Case Left$(t, 1)
+            Case "`": b = Val(m): m = _ToStr$(b): EndPos = EndPos + 1 'bit
+            Case "%" 'integer or byte
+                Select Case Right$(t, 1)
+                    Case "%": byte = Val(m): m = _ToStr$(byte): EndPos = EndPos + 2 'integer
+                    Case Else: i = Val(m): m = _ToStr$(i): EndPos = EndPos + 1 'byte
+                End Select
+            Case "&" 'long or integer64
+                Select Case Right$(t, 1)
+                    Case "&": i64 = Val(m): m = _ToStr$(i64): EndPos = EndPos + 2 'integer64
+                    Case Else: l = Val(m): m = _ToStr$(l): EndPos = EndPos + 1 'long
+                End Select
+            Case Else
+                Select Case Len(m)
+                    Case Is <= 6: i = Val(m): m = _ToStr$(i)
+                    Case Is <= 10: l = Val(m): m = _ToStr$(l)
+                    Case Else: i64 = Val(m): m = _ToStr$(i64)
+                End Select
+        End Select
+    End If
+    Return
+End Function
+
+Function String.Find& (Content As String, Search As String, CountTo As Long)
+    'If CountTo is 0, this routine will count the number of instances of the search term inside the content string
+    'If CountTo is >0, this routine will find the position of that instance, if it exists, inside the search string.
+    'For example, CountTo = 2, it'll find the location of the 2nd instance of the search term, skipping the first.
+    If CountTo < 0 Then Exit Function 'Can't find a negative position.
+    Dim As Long p, l, count
+    If Search$ = "" Then Exit Function
+    p = InStr(Content$, Search$)
+    l = Len(Search$)
+    Do While p& > 0
+        count = count + 1
+        If CountTo = count Then String.Find = p: Exit Function
+        p = InStr(p + l, Content$, Search$)
+    Loop
+    If CountTo = 0 Then String.Find = count
+End Function
+
+Function String.Replace$ (content$, from$, to$, position As Long)
+    Dim found As Long: found = String.Find(content$, from$, position)
+    If found Then String.Replace = Left$(content$, found - 1) + to$ + Mid$(content$, found + Len(from$))
+End Function
+
+Function String.Replace.All$ (content$, from$, to$)
+    'Inspired by the forum post here: https://qb64phoenix.com/forum/showthread...9#pid33559
+    'Original credit goes to mdijkens as I just tweaked it a little to make it a bit more library friendly
+    $Checking:Off
+    Dim As Long mp, pp, found, flen, tlen, p
+    Dim m As _MEM
+    Dim As String content2
+    found = String.Find(content$, from$, 0)
+    flen = Len(from$): tlen = Len(to$)
+
+    m = _MemNew(Len(content$) + (tlen& - flen&) * found): mp = 0: pp = 1
+    p = InStr(content$, from$)
+    Do While p > 0
+        _MemPut m, m.OFFSET + mp, Mid$(content$, pp, p& - pp): mp = mp + p& - pp
+        _MemPut m, m.OFFSET + mp, to$: mp = mp + tlen&: pp = p& + flen&
+        p& = InStr(p + flen&, content$, from$)
+    Loop
+    _MemPut m, m.OFFSET + mp, Mid$(content$, pp): mp = mp + Len(Mid$(content$, pp))
+    content2$ = Space$(mp): _MemGet m, m.OFFSET, content2$: _MemFree m
+    String.Replace.All$ = content2$
+    $Checking:On
+End Function
+
+Function Color.Find& (targetColor As _Unsigned Long, Pal() As _Unsigned Long)
+    Dim As Long tr, tg, tb, colors, bestdist
+    Dim As Long bestIndex, dr, dg, db, i, dist
+    Dim As _Unsigned Long c
+
+    tr = _Red32(targetColor): tg = _Green32(targetColor): tb = _Blue32(targetColor):
+    colors = UBound(Pal): bestdist = _LONG_MAX
+
+    $Checking:Off
+    While i < colors
+        c = Pal(i)
+        dr = tr - _Red32(c)
+        dg = tg - _Green32(c)
+        db = tb - _Blue32(c)
+        dist = dr * dr + dg * dg + db * db
+        If dist < bestdist Then
+            If dist = 0 Then Color.Find& = i: Exit Function
+            bestdist = dist: bestIndex = i
+        End If
+        i = i + 1
+    Wend
+    $Checking:On
+    Color.Find& = bestIndex
+End Function
+
+Sub MemSort (m As _MEM)
+    Dim i As _Unsigned Long
+    Dim As Long DataType, i1, gap, swapped
+    $If 64BIT Then
+        Dim ES As _Integer64, EC As _Integer64
+    $Else
+        DIM ES AS LONG, EC AS LONG
+    $End If
+
+    If Not m.TYPE And 65536 Then Exit Sub 'We won't work without an array
+    If m.TYPE And 1024 Then DataType = 10
+    If m.TYPE And 1 Then DataType = DataType + 1
+    If m.TYPE And 2 Then DataType = DataType + 2
+    If m.TYPE And 4 Then If m.TYPE And 128 Then DataType = DataType + 4 Else DataType = 3
+    If m.TYPE And 8 Then If m.TYPE And 128 Then DataType = DataType + 8 Else DataType = 5
+    If m.TYPE And 32 Then DataType = 6
+    If m.TYPE And 512 Then DataType = 7
+
+    'Convert our offset data over to something we can work with
+    Dim m1 As _MEM: m1 = _MemNew(Len(ES))
+    _MemPut m1, m1.OFFSET, m.ELEMENTSIZE: _MemGet m1, m1.OFFSET, ES 'Element Size
+    _MemPut m1, m1.OFFSET, m.SIZE: _MemGet m1, m1.OFFSET, EC 'Element Count will temporily hold the WHOLE array size
+    _MemFree m1
+
+    EC = EC / ES - 1 'Now we take the whole element size / the size of the elements and get our actual element count.  We subtract 1 so our arrays start at 0 and not 1.
+    'And work with it!
+    Dim o As _Offset, o1 As _Offset, counter As _Unsigned Long
+
+    Select Case DataType
+        Case 1 'BYTE
+            Dim temp1(-128 To 127) As _Unsigned Long
+            Dim t1 As _Byte
+            i = 0
+            Do
+                _MemGet m, m.OFFSET + i, t1
+                temp1(t1) = temp1(t1) + 1
+                i = i + 1
+            Loop Until i > EC
+            i1 = -128
+            Do
+                Do Until temp1(i1) = 0
+                    _MemPut m, m.OFFSET + counter, i1 As _Byte
+                    counter = counter + 1
+                    temp1(i1) = temp1(i1) - 1
+                    If counter > EC Then Exit Sub
+                Loop
+                i1 = i1 + 1
+            Loop Until i1 > 127
+        Case 2: 'INTEGER
+            Dim temp2(-32768 To 32767) As _Unsigned Long
+            Dim t2 As Integer
+            i = 0
+            Do
+                _MemGet m, m.OFFSET + i * 2, t2
+                temp2(t2) = temp2(t2) + 1
+                i = i + 1
+            Loop Until i > EC
+            i1 = -32768
+            Do
+                Do Until temp2(i1) = 0
+                    _MemPut m, m.OFFSET + counter * 2, i1 As Integer
+                    counter = counter + 1
+                    temp2(i1) = temp2(i1) - 1
+                    If counter > EC Then Exit Sub
+                Loop
+                i1 = i1 + 1
+            Loop Until i1 > 32767
+        Case 3 'SINGLE
+            Dim T3a As Single, T3b As Single
+            gap = EC
+            Do
+                gap = 10 * gap \ 13
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * 4
+                    o1 = m.OFFSET + (i + gap) * 4
+                    If _MemGet(m, o, Single) > _MemGet(m, o1, Single) Then
+                        _MemGet m, o1, T3a
+                        _MemGet m, o, T3b
+                        _MemPut m, o1, T3b
+                        _MemPut m, o, T3a
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+        Case 4 'LONG
+            Dim T4a As Long, T4b As Long
+            gap = EC
+            Do
+                gap = 10 * gap \ 13
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * 4
+                    o1 = m.OFFSET + (i + gap) * 4
+                    If _MemGet(m, o, Long) > _MemGet(m, o1, Long) Then
+                        _MemGet m, o1, T4a
+                        _MemGet m, o, T4b
+                        _MemPut m, o1, T4b
+                        _MemPut m, o, T4a
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+        Case 5 'DOUBLE
+            Dim T5a As Double, T5b As Double
+            gap = EC
+            Do
+                gap = 10 * gap \ 13
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * 8
+                    o1 = m.OFFSET + (i + gap) * 8
+                    If _MemGet(m, o, Double) > _MemGet(m, o1, Double) Then
+                        _MemGet m, o1, T5a
+                        _MemGet m, o, T5b
+                        _MemPut m, o1, T5b
+                        _MemPut m, o, T5a
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+        Case 6 ' _FLOAT
+            Dim T6a As _Float, T6b As _Float
+            gap = EC
+            Do
+                gap = 10 * gap \ 13
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * 32
+                    o1 = m.OFFSET + (i + gap) * 32
+                    If _MemGet(m, o, _Float) > _MemGet(m, o1, _Float) Then
+                        _MemGet m, o1, T6a
+                        _MemGet m, o, T6b
+                        _MemPut m, o1, T6b
+                        _MemPut m, o, T6a
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+        Case 7 'String
+            Dim T7a As String, T7b As String, T7c As String
+            T7a = Space$(ES): T7b = Space$(ES): T7c = Space$(ES)
+            gap = EC
+            Do
+                gap = Int(gap / 1.247330950103979)
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * ES
+                    o1 = m.OFFSET + (i + gap) * ES
+                    _MemGet m, o, T7a
+                    _MemGet m, o1, T7b
+                    If T7a > T7b Then
+                        T7c = T7b
+                        _MemPut m, o1, T7a
+                        _MemPut m, o, T7c
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+        Case 8 '_INTEGER64
+            Dim T8a As _Integer64, T8b As _Integer64
+            gap = EC
+            Do
+                gap = 10 * gap \ 13
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * 8
+                    o1 = m.OFFSET + (i + gap) * 8
+                    If _MemGet(m, o, _Integer64) > _MemGet(m, o1, _Integer64) Then
+                        _MemGet m, o1, T8a
+                        _MemGet m, o, T8b
+                        _MemPut m, o1, T8b
+                        _MemPut m, o, T8a
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+        Case 11: '_UNSIGNED _BYTE
+            Dim temp11(0 To 255) As _Unsigned Long
+            Dim t11 As _Unsigned _Byte
+            i = 0
+            Do
+                _MemGet m, m.OFFSET + i, t11
+                temp11(t11) = temp11(t11) + 1
+                i = i + 1
+            Loop Until i > EC
+            i1 = 0
+            Do
+                Do Until temp11(i1) = 0
+                    _MemPut m, m.OFFSET + counter, i1 As _Unsigned _Byte
+                    counter = counter + 1
+                    temp11(i1) = temp11(i1) - 1
+                    If counter > EC Then Exit Sub
+                Loop
+                i1 = i1 + 1
+            Loop Until i1 > 255
+        Case 12 '_UNSIGNED INTEGER
+            Dim temp12(0 To 65535) As _Unsigned Long
+            Dim t12 As _Unsigned Integer
+            i = 0
+            Do
+                _MemGet m, m.OFFSET + i * 2, t12
+                temp12(t12) = temp12(t12) + 1
+                i = i + 1
+            Loop Until i > EC
+            i1 = 0
+            Do
+                Do Until temp12(i1) = 0
+                    _MemPut m, m.OFFSET + counter * 2, i1 As _Unsigned Integer
+                    counter = counter + 1
+                    temp12(i1) = temp12(i1) - 1
+                    If counter > EC Then Exit Sub
+                Loop
+                i1 = i1 + 1
+            Loop Until i1 > 65535
+        Case 14 '_UNSIGNED LONG
+            Dim T14a As _Unsigned Long, T14b As _Unsigned Long
+            gap = EC
+            Do
+                gap = 10 * gap \ 13
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * 4
+                    o1 = m.OFFSET + (i + gap) * 4
+                    If _MemGet(m, o, _Unsigned Long) > _MemGet(m, o1, _Unsigned Long) Then
+                        _MemGet m, o1, T14a
+                        _MemGet m, o, T14b
+                        _MemPut m, o1, T14b
+                        _MemPut m, o, T14a
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+        Case 18: '_UNSIGNED _INTEGER64
+            Dim T18a As _Unsigned _Integer64, T18b As _Unsigned _Integer64
+            gap = EC
+            Do
+                gap = 10 * gap \ 13
+                If gap < 1 Then gap = 1
+                i = 0
+                swapped = 0
+                Do
+                    o = m.OFFSET + i * 8
+                    o1 = m.OFFSET + (i + gap) * 8
+                    If _MemGet(m, o, _Unsigned _Integer64) > _MemGet(m, o1, _Unsigned _Integer64) Then
+                        _MemGet m, o1, T18a
+                        _MemGet m, o, T18b
+                        _MemPut m, o1, T18b
+                        _MemPut m, o, T18a
+                        swapped = -1
+                    End If
+                    i = i + 1
+                Loop Until i + gap > EC
+            Loop Until gap = 1 And swapped = 0
+    End Select
+End Sub
+
+Function Ansi_To_Utf8$ (text$)
+    Dim chi&, unicode&, temp$
+    For chi& = 1 To Len(text$)
+        unicode& = _MapUnicode(Asc(text$, chi&)) '--- get ANSI char code, reset Unicode ---
+        If unicode& = 0 Then unicode& = 65533 'replacement character
+        temp$ = temp$ + Unicode_To_UTF8$(unicode&)
+    Next chi&
+    Ansi_To_Utf8$ = temp$
+End Function
+
+Function Unicode_To_UTF8$ (unicode&)
+    Dim uc&, first%, remain%, conti%, temp$
+    If unicode& < 128 Then '--- standard ASCII (0-127) goes as is ---
+        Unicode_To_UTF8$ = Chr$(unicode&)
+        Exit Function
+    Else '--- encode the Unicode into UTF-8 notation ---
+        temp$ = "": uc& = unicode& 'avoid argument side effect
+        first% = &B10000000: remain% = 63
+        Do
+            first% = &B10000000 Or (first% \ 2): remain% = (remain% \ 2)
+            conti% = &B10000000 Or (uc& And &B00111111): uc& = uc& \ 64
+            temp$ = Chr$(conti%) + temp$
+            If uc& <= remain% Then
+                first% = (first% Or uc&): uc& = 0
+            End If
+        Loop Until uc& = 0
+        Unicode_To_UTF8$ = Chr$(first%) + temp$
+    End If
+End Function
+

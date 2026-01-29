@@ -1,0 +1,139 @@
+Dim Shared As Long Mouse_StartX, Mouse_StartY, Mouse_EndX, Mouse_EndY 'mouse button status shared variables
+
+Type Axis_Type 'joystick info type and shared variables
+    Active As _Byte
+    X As Integer
+    Y As Integer
+    Vert As Single
+    Hort As Single
+    Angle As Single
+End Type
+ReDim Shared JoyStick(0) As Axis_Type, Button(0) As Long
+
+Sub ReadJoyStick
+    'joystick(1) should be the left paddle
+    'joystick(2) should be the right paddle
+    'joystick(3) should be the d-pad
+    'button(1) is the A button
+    'button(2) is the B button
+    'button(3) is the X button
+    'button(4) is the Y button
+    'button(5) is the top-left button on the front of the game pad
+    'button(6) is the top-right button on the front of the game pad
+    'button(7) is the select button  (top of game pad, beside the d-pad
+    'button(8) is the start button (top of game pad, right of button(7)
+    'button(9) is the left paddle being pushed in as a button
+    'button(10) is the right paddle being pushed in as a button
+    'button(11) is the bottom-left button on the front of the game pad (Z-Axis)
+    'button(12) is the bottom-right button on the front of the game pad (Z-Axis)
+
+    Static As Long d, LA, LB 'Last Axis, Last Button
+    Dim axis(LA) As Single
+    Dim As Long di, a, i, j
+
+    If d = 0 Then d = _Devices
+    If d < 3 Then Exit Sub '3 is joystick.  Without one, then there's no reason to waste effort doing anything else.
+    If LA = 0 Then LA = _LastAxis(3): ReDim JoyStick(1 To 3) As Axis_Type
+    If LA = 0 Then Exit Sub 'if there's no axis on your joystick, I don't know how to read it!
+    If LB = 0 Then LB = _LastButton(3): ReDim Button(1 To LB + 2) As Long
+    If LB = 0 Then Exit Sub 'if there's no buttons on your joystick, then it's not a proper controller.  Go buy one!
+
+    Do
+        di = _DeviceInput
+        Select Case di
+            Case 3 'We have joystick input
+                For a = 1 To LA: axis(a) = Int(100 * _Axis(a)) / 100: Next 'read the input on each axis
+                JoyStick(1).Hort = axis(1): JoyStick(1).Vert = axis(2) 'left pad is axis 1 and 2
+                'axis 3 is the botton left/right buttons on the front of my joystick
+                JoyStick(2).Hort = axis(5): JoyStick(2).Vert = axis(4) 'right pad is axis 5 and 4
+                JoyStick(3).Hort = axis(6): JoyStick(3).Vert = axis(7) 'd-pad is axis 6 and 7
+                'right-pad seems to be mapped backwards to the other axis??!!
+                For i = 1 To LB
+                    Button(i) = _Button(i)
+                Next
+                Button(LB + 1) = _FALSE: Button(LB + 2) = _FALSE
+                Select Case _Axis(3) 'this is an odd axis which reads off the left/right buttons on the front of the gamepad
+                    Case Is > 0.4: Button(LB + 1) = _TRUE
+                    Case Is < -0.4: Button(LB + 2) = _TRUE
+                End Select
+        End Select
+    Loop Until di = 0
+    For j = 1 To 3
+        If Abs(JoyStick(j).Vert) <= .01 Then JoyStick(j).Vert = 0 'remove some natural drift from the keypad
+        If Abs(JoyStick(j).Hort) <= .01 Then JoyStick(j).Hort = 0 'my joystick seldom resets back to perfect 0
+        ' the code below here gives me a simple X/Y value for left/right, up/down of _TRUE/_FALSE
+        'I personally find it easier for my 2-d style games to process than having to use frational results.
+        'Feel free to change the threshold as necessary for your own uses.  0.4 works fine for cardinal directions and diagionals for my use.
+        If Abs(JoyStick(j).Vert) > 0.4 Then JoyStick(j).Y = Sgn(JoyStick(j).Vert) Else JoyStick(j).Y = 0
+        If Abs(JoyStick(j).Hort) > 0.4 Then JoyStick(j).X = Sgn(JoyStick(j).Hort) Else JoyStick(j).X = 0
+        'the angle here is just like the one we learned in school with 0/360 to the right, 90 up, 180 left, and 270 down
+        'Tweak this as needed so it fits the coordinate system of your own stuff as desired.
+        JoyStick(j).Angle = _Atan2(JoyStick(j).Hort, JoyStick(j).Vert)
+        JoyStick(j).Angle = (_R2D(JoyStick(j).Angle) + 270) Mod 360
+        'And below here is what determines if a joystick was active or not
+        If JoyStick(j).Vert = 0 And JoyStick(j).Hort = 0 Then JoyStick(j).Active = _FALSE Else JoyStick(j).Active = _TRUE
+    Next
+End Sub
+
+Function MBS% (takeMouseInput As Long) 'This is just because I'm lazy typing and often just use MBS fot my mouse button status in coding to save keystrokes
+    MBS% = MouseButtonStatus(takeMouseInput)
+End Function
+
+Function MouseButtonStatus% (takeMouseInput As Long)
+    '1 -- left down
+    '2 -- right down
+    '4 -- middle down
+    '8 -- left clicked
+    '16 -- right clicked
+    '32 -- middle clicked
+    '64 -- left held
+    '128 -- right held
+    '256 -- middle held
+    '512 -- scroll down
+    '1024 -- scroll up
+    Static StartTimer As _Float
+    Static ButtonDown As Integer
+    Const ClickLimit## = 0.2 'Less than 1/4th of a second to down, up a key to count as a CLICK.
+    '                          Down longer counts as a HOLD event.
+    Dim As Long tempMBS, bd
+    If takeMouseInput Then
+        While _MouseInput 'Remark out this block, if mouse main input/clear is going to be handled manually in main program.
+            Select Case Sgn(_MouseWheel)
+                Case 1: tempMBS = tempMBS Or 512
+                Case -1: tempMBS = tempMBS Or 1024
+            End Select
+        Wend
+    End If
+
+    If _MouseButton(1) Then tempMBS = tempMBS Or 1
+    If _MouseButton(2) Then tempMBS = tempMBS Or 2
+    If _MouseButton(3) Then tempMBS = tempMBS Or 4
+
+    If StartTimer = 0 Then
+        If _MouseButton(1) Then 'If a button is pressed, start the timer to see what it does (click or hold)
+            ButtonDown = 1: StartTimer = Timer(0.01)
+            Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+        ElseIf _MouseButton(2) Then
+            ButtonDown = 2: StartTimer = Timer(0.01)
+            Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+        ElseIf _MouseButton(3) Then
+            ButtonDown = 3: StartTimer = Timer(0.01)
+            Mouse_StartX = _MouseX: Mouse_StartY = _MouseY
+        End If
+    Else
+        bd = ButtonDown Mod 3
+        If bd = 0 Then bd = 3
+        If Timer(0.01) - StartTimer <= ClickLimit Then 'Button was down, then up, within time limit.  It's a click
+            If _MouseButton(bd) = 0 Then tempMBS = 4 * 2 ^ ButtonDown: ButtonDown = 0: StartTimer = 0
+        Else
+            If _MouseButton(bd) = 0 Then 'hold event has now ended
+                tempMBS = 0: ButtonDown = 0: StartTimer = 0
+                Mouse_EndX = _MouseX: Mouse_EndY = _MouseY
+            Else 'We've now started the hold event
+                tempMBS = tempMBS Or 32 * 2 ^ ButtonDown
+            End If
+        End If
+    End If
+    MouseButtonStatus = tempMBS
+End Function
+

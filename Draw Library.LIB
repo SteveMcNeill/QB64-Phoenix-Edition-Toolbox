@@ -1,0 +1,391 @@
+Sub Draw.Circle.Fill (CX As Integer, CY As Integer, R As Integer, C As _Unsigned Long)
+    ' CX = center x coordinate
+    ' CY = center y coordinate
+    '  R = radius
+    '  C = fill color
+    Dim Radius As Integer, RadiusError As Integer
+    Dim X As Integer, Y As Integer
+    Radius = Abs(R)
+    RadiusError = -Radius
+    X = Radius
+    Y = 0
+    If Radius = 0 Then PSet (CX, CY), C: Exit Sub
+    Line (CX - X, CY)-(CX + X, CY), C, BF
+    While X > Y
+        RadiusError = RadiusError + Y * 2 + 1
+        If RadiusError >= 0 Then
+            If X <> Y + 1 Then
+                Line (CX - Y, CY - X)-(CX + Y, CY - X), C, BF
+                Line (CX - Y, CY + X)-(CX + Y, CY + X), C, BF
+            End If
+            X = X - 1
+            RadiusError = RadiusError - X * 2
+        End If
+        Y = Y + 1
+        Line (CX - X, CY - Y)-(CX + X, CY - Y), C, BF
+        Line (CX - X, CY + Y)-(CX + X, CY + Y), C, BF
+    Wend
+End Sub
+
+Sub Draw.Circle.Thick (x As Single, y As Single, radius As Single, thickness As Single, colour As _Unsigned Long)
+    Dim rp As Single, rm As Single, rp2 As Single, rm2 As Single
+    Dim sm As Single, rpi2 As Single, rmi2 As Single, sp As Single
+    Dim i As Single
+
+    rp = radius + thickness / 2
+    rm = radius - thickness / 2
+    rp2 = rp ^ 2
+    rm2 = rm ^ 2
+    For i = -rp To -rm Step .2
+        rpi2 = rp2 - i ^ 2
+        sp = Sqr(rpi2)
+        Line (x + i, y)-(x + i, y + sp), colour, BF
+        Line (x + i, y)-(x + i, y - sp), colour, BF
+    Next
+    For i = -rm To 0 Step .2
+        rpi2 = rp2 - i ^ 2
+        rmi2 = rm2 - i ^ 2
+        sm = Sqr(rmi2)
+        sp = Sqr(rpi2)
+        Line (x + i, y + sm)-(x + i, y + sp), colour, BF
+        Line (x - i, y + sm)-(x - i, y + sp), colour, BF
+        Line (x + i, y - sm)-(x + i, y - sp), colour, BF
+        Line (x - i, y - sm)-(x - i, y - sp), colour, BF
+    Next
+    For i = rm To rp Step .2
+        rpi2 = rp2 - i ^ 2
+        sp = Sqr(rpi2)
+        Line (x + i, y)-(x + i, y + sp), colour, BF
+        Line (x + i, y)-(x + i, y - sp), colour, BF
+    Next
+End Sub
+
+
+Sub Draw.Ellipse.Fill (CX As Integer, CY As Integer, a As Integer, b As Integer, C As _Unsigned Long)
+    ' CX = center x coordinate
+    ' CY = center y coordinate
+    '  a = semimajor axis
+    '  b = semiminor axis
+    '  C = fill color
+    If a = 0 Or b = 0 Then Exit Sub
+    Dim h2 As _Integer64
+    Dim w2 As _Integer64
+    Dim h2w2 As _Integer64
+    Dim x As Integer
+    Dim y As Integer
+    w2 = a * a
+    h2 = b * b
+    h2w2 = h2 * w2
+    Line (CX - a, CY)-(CX + a, CY), C, BF
+    Do While y < b
+        y = y + 1
+        x = Sqr((h2w2 - y * y * w2) \ h2)
+        Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
+        Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
+    Loop
+End Sub
+
+Sub Draw.Ellipse.Tilt (CX, CY, a, b, ang, C As _Unsigned Long)
+    '  CX = center x coordinate
+    '  CY = center y coordinate
+    '  a = semimajor axis
+    '  b = semiminor axis
+    ' ang = clockwise orientation of semimajor axis in radians (0 default)
+    '  C = fill color
+    Dim As _Float k, i, j
+    For k = 0 To 6.283185307179586 + .025 Step .025
+        i = a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
+        j = -a * Cos(k) * Sin(ang) + b * Sin(k) * Cos(ang)
+        i = i + CX
+        j = -j + CY
+        If k <> 0 Then
+            Line -(i, j), C
+        Else
+            PSet (i, j), C
+        End If
+    Next
+End Sub
+
+
+Sub Draw.Ellipse.Tilt.Fill (CX, CY, a, b, ang, C As _Unsigned Long)
+    '  destHandle& = destination handle
+    '  CX = center x coordinate
+    '  CY = center y coordinate
+    '  a = semimajor axis
+    '  b = semiminor axis
+    ' ang = clockwise orientation of semimajor axis in radians (0 default)
+    '  C = fill color
+    Dim As Integer max, mx2, i, j, D, S
+    Dim As Long tef, lasti, lastj
+    Dim prc As _Unsigned Long
+    Dim As _Float k
+    D = _Dest: S = _Source
+    prc = _RGB32(255, 255, 255, 255)
+    If a > b Then max = a + 1 Else max = b + 1
+    mx2 = max + max
+    tef& = _NewImage(mx2, mx2)
+    _Dest tef&
+    _Source tef&
+    For k = 0 To 6.283185307179586 + .025 Step .025
+        i = max + a * Cos(k) * Cos(ang) + b * Sin(k) * Sin(ang)
+        j = max + a * Cos(k) * Sin(ang) - b * Sin(k) * Cos(ang)
+        If k <> 0 Then
+            Line (lasti, lastj)-(i, j), prc
+        Else
+            PSet (i, j), prc
+        End If
+        lasti = i: lastj = j
+    Next
+    Dim xleft(mx2) As Integer, xright(mx2) As Integer, x As Integer, y As Integer
+    For y = 0 To mx2
+        x = 0
+        While Point(x, y) <> prc And x < mx2
+            x = x + 1
+        Wend
+        xleft(y) = x
+        While Point(x, y) = prc And x < mx2
+            x = x + 1
+        Wend
+        While Point(x, y) <> prc And x < mx2
+            x = x + 1
+        Wend
+        If x = mx2 Then xright(y) = xleft(y) Else xright(y) = x
+    Next
+    _Dest D
+    For y = 0 To mx2
+        If xleft(y) <> mx2 Then Line (xleft(y) + CX - max, y + CY - max)-(xright(y) + CX - max, y + CY - max), C, BF
+    Next
+    _Source S
+    _FreeImage tef&
+End Sub
+
+Sub Draw.Image (Image As Long, x As Integer, y As Integer, xscale As Single, yscale As Single, angle As Single, mode As _Byte)
+    'Image is the image handle which we use to reference our image.
+    'x,y is the X/Y coordinates where we want the image to be at on the screen.
+    'angle is the angle which we wish to rotate the image.
+    'mode determines HOW we place the image at point X,Y.
+    'Mode 0 we center the image at point X,Y
+    'Mode 1 we place the Top Left corner of oour image at point X,Y
+    'Mode 2 is Bottom Left
+    'Mode 3 is Top Right
+    'Mode 4 is Bottom Right
+
+    Dim As Integer px(3), py(3), w, h, w1, h1
+    Dim sinr As _Float, cosr As _Float, i As _Byte
+    Dim As Long x2, y2
+    w = _Width(Image): h = _Height(Image)
+    w1 = w * xscale: h1 = h * yscale
+    Select Case mode
+        Case 0 'center
+            px(0) = -w1 / 2: py(0) = -h1 / 2: px(3) = w1 / 2: py(3) = -h1 / 2
+            px(1) = -w1 / 2: py(1) = h1 / 2: px(2) = w1 / 2: py(2) = h1 / 2
+        Case 1 'top left
+            px(0) = 0: py(0) = 0: px(3) = w1: py(3) = 0
+            px(1) = 0: py(1) = h1: px(2) = w1: py(2) = h1
+        Case 2 'bottom left
+            px(0) = 0: py(0) = -h1: px(3) = w1: py(3) = -h1
+            px(1) = 0: py(1) = 0: px(2) = w1: py(2) = 0
+        Case 3 'top right
+            px(0) = -w1: py(0) = 0: px(3) = 0: py(3) = 0
+            px(1) = -w1: py(1) = h1: px(2) = 0: py(2) = h1
+        Case 4 'bottom right
+            px(0) = -w1: py(0) = -h1: px(3) = 0: py(3) = -h1
+            px(1) = -w1: py(1) = 0: px(2) = 0: py(2) = 0
+    End Select
+    sinr = Sin(angle / 57.2957795131): cosr = Cos(angle / 57.2957795131)
+    For i = 0 To 3
+        x2 = (px(i) * cosr + sinr * py(i)) + x: y2 = (py(i) * cosr - px(i) * sinr) + y
+        px(i) = x2: py(i) = y2
+    Next
+    _MapTriangle (0, 0)-(0, h - 1)-(w - 1, h - 1), Image To(px(0), py(0))-(px(1), py(1))-(px(2), py(2))
+    _MapTriangle (0, 0)-(w - 1, 0)-(w - 1, h - 1), Image To(px(0), py(0))-(px(3), py(3))-(px(2), py(2))
+End Sub
+
+
+Sub Draw.Line.Angle (x1 As Long, y1 As Long, angle As _Float, length As Long, colour As _Unsigned Long)
+    Dim As Long x2, y2
+    x2 = x1 + (length * Cos(angle))
+    y2 = y1 + (length * Sin(angle))
+    Line (x1, y1)-(x2, y2), colour
+End Sub
+
+
+Sub Draw.Line.Thick (x1 As Long, y1 As Long, x2 As Long, y2 As Long, thickness As Long, colour As _Unsigned Long)
+    'orientation of line is set in the middle of line thickness
+    Static tempimage As Long, m As _MEM
+    Dim ht As _Float: ht = thickness / 2 'half thickness
+    Dim As _Float cang, ta, tb, tax1, tay1, tax2, tay2, tax3, tay3, tax4, tay4
+    If tempimage = 0 Then tempimage = _NewImage(1, 1, 32): m = _MemImage(tempimage)
+    $Checking:Off
+    _MemPut m, m.OFFSET, colour
+    $Checking:On
+    cang = _Atan2((y2 - y1), (x2 - x1)) 'get the angle from x1,y1 to x2,y2
+    ta = cang + _Pi(.5)
+    tb = ta + _Pi
+    tax1 = x1 + ht * Cos(ta): tay1 = y1 + ht * Sin(ta)
+    tax4 = x1 + ht * Cos(tb): tay4 = y1 + ht * Sin(tb)
+    tax2 = x2 + ht * Cos(ta): tay2 = y2 + ht * Sin(ta)
+    tax3 = x2 + ht * Cos(tb): tay3 = y2 + ht * Sin(tb)
+    _MapTriangle (0, 0)-(0, 0)-(0, 0), tempimage To(tax1, tay1)-(tax2, tay2)-(tax4, tay4)
+    _MapTriangle (0, 0)-(0, 0)-(0, 0), tempimage To(tax2, tay2)-(tax3, tay3)-(tax4, tay4)
+End Sub
+
+Sub Draw.Quad (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
+    Line (x1, y1)-(x2, y2), K
+    Line (x2, y2)-(x3, y3), K
+    Line (x3, y3)-(x4, y4), K
+    Line (x4, y4)-(x1, y1), K
+End Sub
+
+Sub Draw.Quad.Thick (x1, y1, x2, y2, x3, y3, x4, y4, thickness, K As _Unsigned Long)
+    Draw.Line.Thick x1, y1, x2, y2, thickness, K
+    Draw.Line.Thick x2, y2, x3, y3, thickness, K
+    Draw.Line.Thick x3, y3, x4, y4, thickness, K
+    Draw.Line.Thick x4, y4, x1, y1, thickness, K
+End Sub
+
+Sub Draw.Quad.Fill (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
+    Draw.Triangle.Fill x1, y1, x2, y2, x3, y3, K
+    Draw.Triangle.Fill x3, y3, x4, y4, x1, y1, K
+End Sub
+
+
+Sub Draw.Rect.Rounded (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
+    Dim As Long a, b, e, r
+
+    r = radius
+    If r > Abs(y - y1) \ 2 Then r = Abs(y - y1) \ 2 'radius no larger than half the height of the circle
+
+    'Draw the 4 straight lines first
+    Line (x, y + r)-(x, y1 - r), c
+    Line (x1, y + r)-(x1, y1 - r), c
+    Line (x + r, y)-(x1 - r, y), c
+    Line (x + r, y1)-(x1 - r, y1), c
+    a = r: b = 0: e = -a
+
+
+    'And then draw the rounded circle portions of the RoundRect
+    Do While a >= b
+        PSet (x + r - b, y + r - a), c: PSet (x1 - r + b, y + r - a), c
+        PSet (x + r - a, y + r - b), c: PSet (x1 - r + a, y + r - b), c
+        PSet (x + r - b, y1 - r + a), c: PSet (x1 - r + b, y1 - r + a), c
+        PSet (x + r - a, y1 - r + b), c: PSet (x1 - r + a, y1 - r + b), c
+        b = b + 1: e = e + b + b
+        If e > 0 Then a = a - 1: e = e - a - a
+    Loop
+End Sub
+
+
+Sub Draw.Rect.Rounded.Fill (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
+    Dim As Long a, b, e, r
+
+    r = radius
+    If r > Abs(y - y1) \ 2 Then r = Abs(y - y1) \ 2 'radius no larger than half the height of the circle
+
+    Line (x, y + r)-(x1, y1 - r), c, BF
+
+    a = r: b = 0: e = -a
+
+    Do While a >= b
+        Line (x + r - b, y + r - a)-(x1 - r + b, y + r - a), c, BF
+        Line (x + r - a, y + r - b)-(x1 - r + a, y + r - b), c, BF
+        Line (x + r - b, y1 - r + a)-(x1 - r + b, y1 - r + a), c, BF
+        Line (x + r - a, y1 - r + b)-(x1 - r + a, y1 - r + b), c, BF
+        b = b + 1: e = e + b + b
+        If e > 0 Then a = a - 1: e = e - a - a
+    Loop
+End Sub
+
+Function Draw.Text.To.Image& (text$, font&, fc&, bfc&, mode As _Byte)
+    'text$ is the text that we wish to transform into an image.
+    'font& is the handle of the font we want to use.
+    'fc& is the color of the font we want to use.
+    'bfc& is the background color of the font.
+
+    'Mode 1 is print forwards
+    'Mode 2 is print backwards
+    'Mode 3 is print from top to bottom
+    'Mode 4 is print from bottom up
+    'Mode 0 got lost somewhere, but it's OK.  We check to see if our mode is < 1 or > 4 and compensate automatically if it is to make it one (default).
+    Dim As Long DC, BGC, D, F, T2Idown, T2Iright, w, h, i
+    Dim As Long TextToImage_temp, fx
+    Dim As String temp
+    If mode < 1 Or mode > 4 Then mode = 1
+    DC& = _DefaultColor: BGC& = _BackgroundColor
+    D = _Dest
+    F = _Font
+    T2Idown = CsrLin: T2Iright = Pos(0)
+    If font& <> 0 Then _Font font&
+    If mode < 3 Then
+        'print the text lengthwise
+        w& = _PrintWidth(text$): h& = _FontHeight
+    Else
+        'print the text vertically
+        For i = 1 To Len(text$)
+            If w& < _PrintWidth(Mid$(text$, i, 1)) Then w& = _PrintWidth(Mid$(text$, i, 1))
+        Next
+        h& = _FontHeight * (Len(text$))
+    End If
+
+    TextToImage_temp& = _NewImage(w&, h&, 32)
+    Draw.Text.To.Image = TextToImage_temp&
+    _Dest TextToImage_temp&
+    If font& <> 0 Then _Font font&
+    Color fc&, bfc&
+
+    Select Case mode
+        Case 1
+            'Print text forward
+            _PrintString (0, 0), text$
+        Case 2
+            'Print text backwards
+            temp$ = ""
+            For i = 0 To Len(text$) - 1
+                temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
+            Next
+            _PrintString (0, 0), temp$
+        Case 3
+            'Print text upwards
+            'first lets reverse the text, so it's easy to place
+            temp$ = ""
+            For i = 0 To Len(text$) - 1
+                temp$ = temp$ + Mid$(text$, Len(text$) - i, 1)
+            Next
+            'then put it where it belongs
+            For i = 1 To Len(text$)
+                fx = (w& - _PrintWidth(Mid$(temp$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
+                _PrintString (fx, _FontHeight * (i - 1)), Mid$(temp$, i, 1)
+            Next
+        Case 4
+            'Print text downwards
+            For i = 1 To Len(text$)
+                fx = (w& - _PrintWidth(Mid$(text$, i, 1))) / 2 + .99 'This is to center any non-monospaced letters so they look better
+                _PrintString (fx, _FontHeight * (i - 1)), Mid$(text$, i, 1)
+            Next
+    End Select
+    _Dest D
+    Color DC&, BGC&
+    _Font F
+    Locate T2Idown, T2Iright
+End Function
+
+Sub Draw.Triangle (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+    Line (x1, y1)-(x2, y2), K
+    Line (x2, y2)-(x3, y3), K
+    Line (x3, y3)-(x1, y1), K
+End Sub
+
+Sub Draw.Triangle.Fill (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+    $Checking:Off
+    Static a&, m As _MEM
+    If a& = 0 Then a& = _NewImage(1, 1, 32): m = _MemImage(a&)
+    _MemPut m, m.OFFSET, K
+    _MapTriangle _Seamless(0, 0)-(0, 0)-(0, 0), a& To(x1, y1)-(x2, y2)-(x3, y3)
+    $Checking:On
+End Sub
+
+Sub Draw.Triangle.Thick (x1, y1, x2, y2, x3, y3, thickness, K As _Unsigned Long)
+    Draw.Line.Thick x1, y1, x2, y2, thickness, K
+    Draw.Line.Thick x2, y2, x3, y3, thickness, K
+    Draw.Line.Thick x3, y3, x1, y1, thickness, K
+End Sub

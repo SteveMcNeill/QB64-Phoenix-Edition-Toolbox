@@ -1,0 +1,83 @@
+$If WIN Then
+    Type SpeechType
+        As Integer Speaker, Speed, Volume
+        As String File
+    End Type
+    Dim Shared SpeechVar As SpeechType
+    Sub Speech.Init
+        SpeechVar.Speaker = 0
+        SpeechVar.Speed = 0
+        SpeechVar.Volume = 100
+        SpeechVar.File = ""
+        Speech.Speak " "
+    End Sub
+
+    Sub Speech.Speaker (who$)
+        Select Case UCase$(who$)
+            Case "DAVID", "MALE", "M": SpeechVar.Speaker = 0
+            Case "ZIVA", "FEMALE", "F": SpeechVar.Speaker = 1
+        End Select
+    End Sub
+
+    Sub Speech.Speed (Speed)
+        If Speed < -10 Then Speed = -10
+        If Speed > 10 Then Speed = 10
+    SpeechVar.Speed = Speed: End Sub
+    Sub Speech.Volume (Volume): SpeechVar.Volume = Volume: End Sub
+
+    Sub Speech.OutTo (where$)
+        Select Case UCase$(where$)
+            Case "CONSOLE", "CONS", "", "SPEAKER": SpeechVar.File$ = ""
+            Case Else: SpeechVar.File$ = where$
+        End Select
+    End Sub
+
+    Sub Speech.Speak (text$)
+        Dim As Long s
+        If _FileExists("TempSpeech.WAV") Then Kill "TempSpeech.WAV"
+        Speech.Process text$, SpeechVar.Speaker, SpeechVar.Speed, "TempSpeech.WAV", SpeechVar.Volume
+        Do: _Delay .1: Loop Until _FileExists("TempSpeech.WAV")
+        s = _SndOpen("TempSpeech.WAV")
+        _SndPlay s
+        Do
+            _Delay .1
+        Loop Until _SndPlaying(s) = 0
+        _SndClose s
+    End Sub
+
+    Sub Speak.ToWav (text$, file$)
+        If UCase$(Right$(file$, 4)) = ".WAV" Then
+            Speech.Process text$, SpeechVar.Speaker, SpeechVar.Speed, file$, SpeechVar.Volume
+        End If
+    End Sub
+
+    Sub Speech.Process (text As String, Speaker As Integer, Speed, savefile$, volume)
+        Dim As String message, file, remove
+        Dim out$
+        Dim As Long j, i
+        message = text 'an in sub variable so we don't change the passed data
+        If UCase$(Right$(savefile$, 4)) <> ".WAV" Then file$ = "" Else file$ = savefile$ 'again, don't change passed data
+        'some symbols and such can't be used with Powershell like this, as they're command symbols
+        'we need to strip them out of our text.  (Like apostrophes!)
+        remove$ = "'" + Chr$(34) 'add to remove$ here, if more symbols need to be removed as future testing showcases problems
+        For j = 1 To Len(remove$)
+            Do
+                i = InStr(message, Mid$(remove$, j, 1))
+                If i Then message = Left$(message, i - 1) + Mid$(message, i + 1)
+            Loop Until i = 0
+        Next
+        out$ = "Powershell -Command " + Chr$(34)
+        out$ = out$ + "Add-Type -AssemblyName System.Speech; "
+        out$ = out$ + "$Speech = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+        If file$ <> "" Then out$ = out$ + "$Speech.SetOutputToWaveFile({" + Chr$(34) + file$ + Chr$(34) + "}); " 'The command to send the output to a file and not the speakers.
+        If Speaker = 0 Then
+            out$ = out$ + "$Speech.SelectVoice('Microsoft David Desktop'); "
+        ElseIf Speaker = 1 Then
+            out$ = out$ + "$Speech.SelectVoice('Microsoft Zira Desktop'); "
+        End If
+        If volume >= 0 _AndAlso volume <= 100 Then out$ = out$ + "$Speech.Volume =" + Str$(volume) + "; "
+        If Speed Then out$ = out$ + "$Speech.Rate =" + Str$(Speed) + "; "
+        out$ = out$ + "$Speech.Speak(' " + message + "');" + Chr$(34)
+        Shell _Hide out$
+    End Sub
+$End If

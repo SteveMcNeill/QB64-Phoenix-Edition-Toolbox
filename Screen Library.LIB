@@ -1,0 +1,106 @@
+Declare Library
+    Function glutGet& (ByVal what&)
+    Sub glutReshapeWindow (ByVal width&, ByVal height&)
+End Declare
+
+Function Screen.Border.Width&
+    Screen.Border.Width = glutGet(506)
+End Function
+
+Sub Screen.DPIaware (mode As Long)
+    'Const UNAWARE = -1, AWARE = -2, PER_MONITOR_AWARE = -3
+    'Const PER_MONITOR_AWARE_V2 = -4, UNAWARE_GDISCALED = -5
+    $If WIN Then
+        Static CalledOnce As Long
+        Declare Dynamic Library "user32"
+            Function DPI& Alias SetProcessDpiAwarenessContext (ByVal dpiContext As _Offset)
+        End Declare
+        If mode > 0 Or mode < -5 Then Exit Sub
+        If CalledOnce Then Exit Sub Else CalledOnce = -1
+        result = DPI(mode)
+        If result = 0 Then
+            _MessageBox "Failed to set DPI Awareness", "Notice -- failed to set DPI Awareness. Defaulting to System settings.", "info"
+        Else
+            _Delay .25 'always nice for a set delay after system calls like this, if they work.
+        End If
+    $End If
+End Sub
+
+Sub Screen.Move (x, y)
+    'Moves to the absolute coordinates of the desktop, ignoring border and title, so the program window is
+    ' positioned with the program window at the desired position, without taking them into consideration.
+    _ScreenMove x - Screen.Border.Width, y - Screen.Border.Width - Screen.TitleBar.Height
+End Sub
+
+Sub Screen.Move.Middle
+    'Moves to the absolute middle of the desktop, ignoring border and title, so the program window is centered without
+    'taking them into consideration.
+    _ScreenMove (_DesktopWidth - _Width - BorderWidth) / 2 + 1, (_DesktopHeight - _Height - BorderWidth) / 2 - TitleBarHeight + 1
+End Sub
+
+Sub Screen.Scroll.Up (ImageHandle As Long)
+    $Checking:Off
+    Dim m As _MEM
+    Dim As Long p, w
+    Dim As String t
+    m = _MemImage(ImageHandle)
+    p = _PixelSize
+    If p = 0 Then w = _Width * 2 Else w = _FontHeight * _Width * p
+    t$ = Space$(m.SIZE - w)
+    _MemGet m, m.OFFSET + w, t$
+    Cls , 0, ImageHandle
+    _MemPut m, m.OFFSET, t$
+    _MemFree m
+    $Checking:On
+End Sub
+
+Sub Screen.Scroll.Down (ImageHandle As Long)
+    $Checking:Off
+    Dim m As _MEM
+    Dim As Long p, w
+    Dim As String t
+    m = _MemImage(ImageHandle)
+    p = _PixelSize
+    If p = 0 Then w = _Width * 2 Else w = _FontHeight * _Width * p
+    t$ = Space$(m.SIZE - w)
+    _MemGet m, m.OFFSET, t$
+    Cls , 0, ImageHandle
+    _MemPut m, m.OFFSET + w, t$
+    _MemFree m
+    $Checking:On
+End Sub
+
+
+
+Sub Screen.Snapback (xMin As Long, yMin As Long, xMax As Long, yMax As Long)
+    xsize = Screen.Window.Width
+    ysize = Screen.Window.Height
+    If xsize < xMin Then resize = -1: xsize = xMin
+    If xsize > xMax Then resize = -1: xsize = xMax
+    If ysize < yMin Then resize = -1: ysize = yMin
+    If ysize > yMax Then resize = -1: ysize = yMax
+    If resize Then
+        glutReshapeWindow xsize, ysize
+        _Delay .25 'give time for resize effects to take place
+        nothing = _Resize 'clear any resize flag as this is a system call and not one that the program needs to change
+    End If
+End Sub
+
+Function Screen.TitleBar.Height&
+    Screen.TitleBar.Height = glutGet(507)
+End Function
+
+Function Screen.Window.Height& '103 is the const value of GLUT_WINDOW_HEIGHT
+    'Note that these values won't change until the window size changes.
+    'if $RESIZE is disabled, these aren't helpful at all.
+    'These are just for telling us the window size that our screen exists within
+    Screen.Window.Height = glutGet(103)
+End Function
+
+Function Screen.Window.Width& '102 is the const value of GLUT_WINDOW_WIDTH
+    'Note that these values won't change until the window size changes.
+    'if $RESIZE is disabled, these aren't helpful at all.
+    'These are just for telling us the window size that our screen exists within
+    Screen.Window.Width = glutGet(102)
+End Function
+
