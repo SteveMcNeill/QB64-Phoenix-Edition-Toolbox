@@ -1,3 +1,4 @@
+$IncludeOnce
 Function Date.Day$ (Day As String, Format As String)
     Dim As Long p: Dim As String Part: Part = "DD"
     p = InStr(UCase$(Format), Part)
