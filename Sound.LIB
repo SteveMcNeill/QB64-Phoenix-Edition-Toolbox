@@ -1,3 +1,4 @@
+$includeonce
 $If WIN Then
     Type SpeechType
         As Integer Speaker, Speed, Volume

@@ -1,3 +1,5 @@
+$IncludeOnce
+
 Declare Library
     Function glutGet& (ByVal what&)
     Sub glutReshapeWindow (ByVal width&, ByVal height&)

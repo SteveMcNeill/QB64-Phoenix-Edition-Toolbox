@@ -1,3 +1,4 @@
+$includeonce
 'Commonly used CONST values which can be extremely useful inside programs:
 Const True%% = -1%%
 Const False%% = 0%%
