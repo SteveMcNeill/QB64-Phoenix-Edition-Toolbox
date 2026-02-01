@@ -1,4 +1,5 @@
 #### INCLUDE_COMMONCONST
+
     True = -1
     False = 0
     MyAppPath = (The starting directory of where the compiled program begins to run from.)
@@ -9,23 +10,24 @@
     Slash$ = "/" (Linux or Mac)
 
 #### INCLUDE_VARIABLELIMITSCONST
-SIGNED MIN | SIGNED MAX | UNSIGNED MIN | UNSIGNED MAX
----|---|---|---
-Bit_Min = -1 | Bit_Max = 0 | UBit_Min = 0 | UBit_Max = 1
-Byte_Min = -128 | Byte_Max%% = 127 | UByte_Min = 0 | UByte_Max = 256
-Integer_Min = -32768 | Integer_Max = 32767 | UInteger_Min = 0 |UInteger_Max = 65535
-Long_Min = -2147483648 | Long_Max = 2147483647 | ULong_Min = 0 | ULong_Max = 4294967295
-Integer64_Min = -9223372036854775808 | Integer64_Max = 9223372036854775807 | UInteger64_Min = 0 | UInteger64_Max = 18446744073709551615
-Single_Min = -2.802597E-45 | Single_Max = 3.402823E+38
-Double_Min = -4.490656458412465E-324 | Double_Max# = 1.797693134862310E+308
-Float_Min = -1.18E-4932 | Float_Max## = 1.18E+4932
-(32-bit) Offset_Min = -2147483648& | (32-bit) Offset_Max = 2147483647&
-(64-bit) Offset_Min = -9223372036854775808&& | (64-bit) Offset_Max&& = 9223372036854775807&&
-(32-bit) UOffset_Min = 0 | (32-bit) UOffset_Max = 4294967295
-(64-bit) UOffset_Min = 0 | (64-bit) UOffset_Max = 18446744073709551615
 
+| SIGNED MIN                                   | SIGNED MAX                                    | UNSIGNED MIN       | UNSIGNED MAX                          |
+| -------------------------------------------- | --------------------------------------------- | ------------------ | ------------------------------------- |
+| Bit_Min = -1                                 | Bit_Max = 0                                   | UBit_Min = 0       | UBit_Max = 1                          |
+| Byte_Min = -128                              | Byte_Max%% = 127                              | UByte_Min = 0      | UByte_Max = 256                       |
+| Integer_Min = -32768                         | Integer_Max = 32767                           | UInteger_Min = 0   | UInteger_Max = 65535                  |
+| Long_Min = -2147483648                       | Long_Max = 2147483647                         | ULong_Min = 0      | ULong_Max = 4294967295                |
+| Integer64_Min = -9223372036854775808         | Integer64_Max = 9223372036854775807           | UInteger64_Min = 0 | UInteger64_Max = 18446744073709551615 |
+| Single_Min = -2.802597E-45                   | Single_Max = 3.402823E+38                     |                    |                                       |
+| Double_Min = -4.490656458412465E-324         | Double_Max# = 1.797693134862310E+308          |                    |                                       |
+| Float_Min = -1.18E-4932                      | Float_Max## = 1.18E+4932                      |                    |                                       |
+| (32-bit) Offset_Min = -2147483648&           | (32-bit) Offset_Max = 2147483647&             |                    |                                       |
+| (64-bit) Offset_Min = -9223372036854775808&& | (64-bit) Offset_Max&& = 9223372036854775807&& |                    |                                       |
+| (32-bit) UOffset_Min = 0                     | (32-bit) UOffset_Max = 4294967295             |                    |                                       |
+| (64-bit) UOffset_Min = 0                     | (64-bit) UOffset_Max = 18446744073709551615   |                    |                                       |
 
 #### INCLUDE_KEYHITCONST
+
     Key_Backspace = 8
     Key_Tab = 9
     Key_Enter = 13
@@ -135,12 +137,14 @@ Float_Min = -1.18E-4932 | Float_Max## = 1.18E+4932
     Key_LessThan = 60
     Key_GreaterThan = 62
     Key__QuestionMark = 63, Key_Question = 63
+
 ```html
 - 'Note that the following keys are listed as 900000+.  These are KeyHit codes from my KeyHit library and not _KEYHIT values.
 - 'For _KEYHIT values, drop the 900 in front, and QB64-PE will report the other values on a KEYUP event only.
   'So you can read Mute, but it'll *ONLY* read as -173, and that's *only* when you release the key.
 - 'None of these read at all for us on keydown events.
 ```
+
     Key_Mute = 900173
     Key_VolUp = 900174
     Key_VolDown = 900175

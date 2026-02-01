@@ -1,4 +1,4 @@
-$includeonce
+$IncludeOnce
 Dim Shared As Long Mouse_StartX, Mouse_StartY, Mouse_EndX, Mouse_EndY 'mouse button status shared variables
 
 Type Axis_Type 'joystick info type and shared variables
@@ -138,3 +138,26 @@ Function MouseButtonStatus% (takeMouseInput As Long)
     MouseButtonStatus = tempMBS
 End Function
 
+Function MouseInApp
+    Type MIA_point_type: As Long x, y: End Type
+    Declare Dynamic Library "user32"
+        Function GetCursorPos (lpPoint As MIA_point_type)
+    End Declare
+    Declare Library
+        Function glutGet& (ByVal what&)
+    End Declare
+
+    Dim As Long DX, DY, W, H, result
+    Dim Dmouse As MIA_point_type 'Desktop mouse
+
+    result = GetCursorPos(Dmouse)
+    DX = Dmouse.x - _ScreenX - glutGet(506)
+    DY = Dmouse.y - _ScreenY - glutGet(506) - glutGet(507)
+    W = _Width(_Display)
+    H = _Height(_Display)
+    If _PixelSize = 0 Then 'text screen
+        W = W * _FontWidth(_Font(_Display))
+        H = H * _FontHeight(_Font(_Display))
+    End If
+    If DX >= 0 And DX <= W And DY >= 0 And DY <= H Then MouseInApp = -1
+End Function

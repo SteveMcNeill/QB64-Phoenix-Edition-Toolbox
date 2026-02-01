@@ -1,6 +1,6 @@
 Option _Explicit
 Dim start As _Float
-'$Include:'..\..\..\Date Library.LIB'
+'$Include:'..\..\..\Date Library.QLB'
 
 Print Date.Day("12/24/1997", "MM/DD/YYYY"), 'Gives the day from a formatted string
 Print Date.Day("24/12/1997", "DD/MM/YYYY"), 'all these should print 24 across the top of the screen as the day is the 24th
