@@ -1,4 +1,125 @@
-$INcludeonce
+$IncludeOnce
+
+Sub Draw.Ellipse.Fill (CX As Integer, CY As Integer, a As Integer, b As Integer, C As _Unsigned Long)
+    ' CX = center x coordinate
+    ' CY = center y coordinate
+    '  a = semimajor axis
+    '  b = semiminor axis
+    '  C = fill color
+    If a = 0 Or b = 0 Then Exit Sub
+    Dim h2 As _Integer64
+    Dim w2 As _Integer64
+    Dim h2w2 As _Integer64
+    Dim x As Integer
+    Dim y As Integer
+    w2 = a * a
+    h2 = b * b
+    h2w2 = h2 * w2
+    Line (CX - a, CY)-(CX + a, CY), C, BF
+    Do While y < b
+        y = y + 1
+        x = Sqr((h2w2 - y * y * w2) \ h2)
+        Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
+        Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
+    Loop
+End Sub
+
+Sub Draw.Circle.Thick (x As Single, y As Single, radius As Single, thickness As Single, colour As _Unsigned Long)
+    ' Draws a thick filled circle
+    ' cx, cy  = center x/y
+    ' radius = circle radius
+    ' thickness = thickness of the circle
+    ' colour    = fill color
+    Draw.Ellipse.Ring.Arc.Fill x, y, radius - thickness, radius - thickness, radius, radius, 0, 360, colour
+End Sub
+
+Sub Draw.Circle.Ring.Arc.Fill (cx As Long, cy As Long, r1 As Long, r2 As Long, a1 As Single, a2 As Single, col As _Unsigned Long)
+    ' Draws a filled ring arc (donut slice)
+    ' cx, cy  = center x/y
+    ' r1      = inner radius
+    ' r2      = outer radius
+    ' a1, a2  = start/end angles in degrees
+    ' col    = fill color
+    Draw.Ellipse.Ring.Arc.Fill cx, cy, r1, r1, r2, r2, a1, a2, col
+End Sub
+
+Sub Draw.Circle.Arc.Fill (cx As Long, cy As Long, r As Long, a1 As Single, a2 As Single, col As _Unsigned Long)
+    ' Filled arc (pie slice) using only LINE (scanline polygon fill)
+    ' cx, cy  = center of circle
+    ' r      = radius
+    ' a1, a2  = start and end angles in degrees (0 = right, 90 = up)
+    ' col    = color
+    Draw.Ellipse.Ring.Arc.Fill cx, cy, 0, 0, r, r, a1, a2, col
+End Sub
+
+Sub Draw.Ellipse.Arc.Fill (cx As Long, cy As Long, a As Long, b As Long, a1 As Single, a2 As Single, col As _Unsigned Long)
+    ' Filled elliptical arc (pie slice) using only LINE
+    ' cx, cy = center
+    ' a, b = ellipse radii (horizontal, vertical)
+    ' a1, a2 = start/end angles in degrees
+    ' col = color
+    Draw.Ellipse.Ring.Arc.Fill cx, cy, 0, 0, a, b, a1, a2, col
+End Sub
+
+Sub Draw.Ellipse.Ring.Arc.Fill (cx As Long, cy As Long, a1 As Long, b1 As Long, a2 As Long, b2 As Long, t_ang1 As Single, t_ang2 As Single, col As _Unsigned Long)
+    ' Filled elliptical ring arc using only LINE
+    ' cx, cy  = center
+    ' a1, b1  = inner ellipse radii
+    ' a2, b2  = outer ellipse radii
+    ' ang1, ang2 = start/end angles
+    ' col    = fill color
+    Const angStep! = _D2R(5!) 'increase or lower for extra smoothness of circle.  5 seems like a circle to my eyes, without visible distortions.
+    Dim As Single ang1, ang2: ang1 = _D2R(t_ang1): ang2 = _D2R(t_ang2)
+    Dim As Single vx(0 To 4000), vy(0 To 4000), interX(0 To 4000)
+    Dim As Long count, yScan, j, n, i, minY, maxY
+    Dim As Single x1, y1, x2, y2, temp, angle, x, y
+
+    If ang2 < ang1 Then ang2 = ang2 + _Pi(2)
+
+    ' ---- Outer ellipse arc (ang1 ? ang2) ----
+    For angle = ang1 To ang2 Step angStep
+        vx(n) = cx + a2 * Cos(angle): vy(n) = cy - b2 * Sin(angle): n = n + 1
+    Next
+
+    ' Exact endpoint
+    vx(n) = cx + a2 * Cos(ang2): vy(n) = cy - b2 * Sin(ang2): n = n + 1
+
+    ' ---- Inner ellipse arc (ang2 ? ang1, reversed) ----
+    For angle = ang2 To ang1 Step -angStep
+        vx(n) = cx + a1 * Cos(angle): vy(n) = cy - b1 * Sin(angle): n = n + 1
+    Next
+
+    ' Exact endpoint
+    vx(n) = cx + a1 * Cos(ang1): vy(n) = cy - b1 * Sin(ang1): n = n + 1
+
+    ' ---- Scanline fill (same as before) ----
+
+    minY = vy(0): maxY = vy(0)
+    For i = 1 To n - 1: minY = _Min(minY, vy(i)): maxY = _Max(maxY, vy(i)): Next
+
+    For yScan = minY To maxY
+        count = 0
+        For i = 0 To n - 1
+            j = (i + 1) Mod n
+            y1 = vy(i): y2 = vy(j)
+            If y2 <> y1 Then
+                If (y1 <= yScan And y2 > yScan) Or (y2 <= yScan And y1 > yScan) Then
+                    x1 = vx(i): x2 = vx(j)
+                    interX(count) = x1 + (yScan - y1) * (x2 - x1) / (y2 - y1)
+                    count = count + 1
+                End If
+            End If
+        Next
+        ' Sort intersections
+        For i = 0 To count - 2: For j = i + 1 To count - 1
+                If interX(j) < interX(i) Then Swap interX(i), interX(j)
+        Next j, i
+        ' Draw spans
+        For i = 0 To count - 2 Step 2: Line (interX(i), yScan)-(interX(i + 1), yScan), col, BF: Next
+    Next yScan
+End Sub
+
+
 Sub Draw.Circle.Fill (CX As Integer, CY As Integer, R As Integer, C As _Unsigned Long)
     ' CX = center x coordinate
     ' CY = center y coordinate
@@ -28,65 +149,8 @@ Sub Draw.Circle.Fill (CX As Integer, CY As Integer, R As Integer, C As _Unsigned
     Wend
 End Sub
 
-Sub Draw.Circle.Thick (x As Single, y As Single, radius As Single, thickness As Single, colour As _Unsigned Long)
-    Dim rp As Single, rm As Single, rp2 As Single, rm2 As Single
-    Dim sm As Single, rpi2 As Single, rmi2 As Single, sp As Single
-    Dim i As Single
 
-    rp = radius + thickness / 2
-    rm = radius - thickness / 2
-    rp2 = rp ^ 2
-    rm2 = rm ^ 2
-    For i = -rp To -rm Step .2
-        rpi2 = rp2 - i ^ 2
-        sp = Sqr(rpi2)
-        Line (x + i, y)-(x + i, y + sp), colour, BF
-        Line (x + i, y)-(x + i, y - sp), colour, BF
-    Next
-    For i = -rm To 0 Step .2
-        rpi2 = rp2 - i ^ 2
-        rmi2 = rm2 - i ^ 2
-        sm = Sqr(rmi2)
-        sp = Sqr(rpi2)
-        Line (x + i, y + sm)-(x + i, y + sp), colour, BF
-        Line (x - i, y + sm)-(x - i, y + sp), colour, BF
-        Line (x + i, y - sm)-(x + i, y - sp), colour, BF
-        Line (x - i, y - sm)-(x - i, y - sp), colour, BF
-    Next
-    For i = rm To rp Step .2
-        rpi2 = rp2 - i ^ 2
-        sp = Sqr(rpi2)
-        Line (x + i, y)-(x + i, y + sp), colour, BF
-        Line (x + i, y)-(x + i, y - sp), colour, BF
-    Next
-End Sub
-
-
-Sub Draw.Ellipse.Fill (CX As Integer, CY As Integer, a As Integer, b As Integer, C As _Unsigned Long)
-    ' CX = center x coordinate
-    ' CY = center y coordinate
-    '  a = semimajor axis
-    '  b = semiminor axis
-    '  C = fill color
-    If a = 0 Or b = 0 Then Exit Sub
-    Dim h2 As _Integer64
-    Dim w2 As _Integer64
-    Dim h2w2 As _Integer64
-    Dim x As Integer
-    Dim y As Integer
-    w2 = a * a
-    h2 = b * b
-    h2w2 = h2 * w2
-    Line (CX - a, CY)-(CX + a, CY), C, BF
-    Do While y < b
-        y = y + 1
-        x = Sqr((h2w2 - y * y * w2) \ h2)
-        Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
-        Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
-    Loop
-End Sub
-
-Sub Draw.Ellipse.Tilt (CX, CY, a, b, ang, C As _Unsigned Long)
+Sub Draw.Ellipse.Tilt (CX As Long, CY As Long, a As Long, b As Long, ang As Long, C As _Unsigned Long)
     '  CX = center x coordinate
     '  CY = center y coordinate
     '  a = semimajor axis
@@ -108,7 +172,7 @@ Sub Draw.Ellipse.Tilt (CX, CY, a, b, ang, C As _Unsigned Long)
 End Sub
 
 
-Sub Draw.Ellipse.Tilt.Fill (CX, CY, a, b, ang, C As _Unsigned Long)
+Sub Draw.Ellipse.Tilt.Fill (CX As Long, CY As Long, a As Long, b As Long, ang As Long, C As _Unsigned Long)
     '  destHandle& = destination handle
     '  CX = center x coordinate
     '  CY = center y coordinate
@@ -231,21 +295,21 @@ Sub Draw.Line.Thick (x1 As Long, y1 As Long, x2 As Long, y2 As Long, thickness A
     _MapTriangle (0, 0)-(0, 0)-(0, 0), tempimage To(tax2, tay2)-(tax3, tay3)-(tax4, tay4)
 End Sub
 
-Sub Draw.Quad (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
+Sub Draw.Quad (x1 As Long, y1 As Long, x2 As Long, y2 As Long, x3 As Long, y3 As Long, x4 As Long, y4 As Long, K As _Unsigned Long)
     Line (x1, y1)-(x2, y2), K
     Line (x2, y2)-(x3, y3), K
     Line (x3, y3)-(x4, y4), K
     Line (x4, y4)-(x1, y1), K
 End Sub
 
-Sub Draw.Quad.Thick (x1, y1, x2, y2, x3, y3, x4, y4, thickness, K As _Unsigned Long)
+Sub Draw.Quad.Thick (x1 As Long, y1 As Long, x2 As Long, y2 As Long, x3 As Long, y3 As Long, x4 As Long, y4 As Long, thickness As Long, K As _Unsigned Long)
     Draw.Line.Thick x1, y1, x2, y2, thickness, K
     Draw.Line.Thick x2, y2, x3, y3, thickness, K
     Draw.Line.Thick x3, y3, x4, y4, thickness, K
     Draw.Line.Thick x4, y4, x1, y1, thickness, K
 End Sub
 
-Sub Draw.Quad.Fill (x1, y1, x2, y2, x3, y3, x4, y4, K As _Unsigned Long)
+Sub Draw.Quad.Fill (x1 As Long, y1 As Long, x2 As Long, y2 As Long, x3 As Long, y3 As Long, x4 As Long, y4 As Long, K As _Unsigned Long)
     Draw.Triangle.Fill x1, y1, x2, y2, x3, y3, K
     Draw.Triangle.Fill x3, y3, x4, y4, x1, y1, K
 End Sub
@@ -278,23 +342,31 @@ End Sub
 
 
 Sub Draw.Rect.Rounded.Fill (x As Long, y As Long, x1 As Long, y1 As Long, radius As Long, c As _Unsigned Long)
-    Dim As Long a, b, e, r
-
-    r = radius
-    If r > Abs(y - y1) \ 2 Then r = Abs(y - y1) \ 2 'radius no larger than half the height of the circle
-
-    Line (x, y + r)-(x1, y1 - r), c, BF
-
-    a = r: b = 0: e = -a
-
-    Do While a >= b
-        Line (x + r - b, y + r - a)-(x1 - r + b, y + r - a), c, BF
-        Line (x + r - a, y + r - b)-(x1 - r + a, y + r - b), c, BF
-        Line (x + r - b, y1 - r + a)-(x1 - r + b, y1 - r + a), c, BF
-        Line (x + r - a, y1 - r + b)-(x1 - r + a, y1 - r + b), c, BF
-        b = b + 1: e = e + b + b
-        If e > 0 Then a = a - 1: e = e - a - a
-    Loop
+    Dim As Long tmp, w, h, r, yy, inset, dy, dx
+    Dim As Double rr
+    ' Normalize coordinates
+    If x1 < x Then Swap x1, x
+    If y1 < y Then Swap y1, y
+    w = x1 - x: h = y1 - y: If w <= 0 Or h <= 0 Then Exit Sub
+    ' Clamp radius to fit
+    r = radius: If r < 0 Then r = 0
+    tmp = w: If h < tmp Then tmp = h
+    If r * 2 > tmp Then r = tmp \ 2
+    If r = 0 Then Line (x, y)-(x1, y1), c, BF: Exit Sub
+    rr = r * r
+    For yy = y To y1
+        inset = 0
+        If yy < y + r Then ' Top rounded region
+            dy = (y + r) - yy ' 0..r
+            dx = Int(Sqr(rr - dy * dy))
+            inset = r - dx ' shrink corners, keep middle wide
+        ElseIf yy > y1 - r Then ' Bottom rounded region
+            dy = yy - (y1 - r) ' 0..r
+            dx = Int(Sqr(rr - dy * dy))
+            inset = r - dx
+        End If
+        If x + inset <= x1 - inset Then Line (x + inset, yy)-(x1 - inset, yy), c
+    Next yy
 End Sub
 
 Function Draw.Text.To.Image& (text$, font&, fc&, bfc&, mode As _Byte)
@@ -370,13 +442,13 @@ Function Draw.Text.To.Image& (text$, font&, fc&, bfc&, mode As _Byte)
     Locate T2Idown, T2Iright
 End Function
 
-Sub Draw.Triangle (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+Sub Draw.Triangle (x1 As Long, y1 As Long, x2 As Long, y2 As Long, x3 As Long, y3 As Long, K As _Unsigned Long)
     Line (x1, y1)-(x2, y2), K
     Line (x2, y2)-(x3, y3), K
     Line (x3, y3)-(x1, y1), K
 End Sub
 
-Sub Draw.Triangle.Fill (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+Sub Draw.Triangle.Fill (x1 As Long, y1 As Long, x2 As Long, y2 As Long, x3 As Long, y3 As Long, K As _Unsigned Long)
     $Checking:Off
     Static a&, m As _MEM
     If a& = 0 Then a& = _NewImage(1, 1, 32): m = _MemImage(a&)
@@ -385,7 +457,7 @@ Sub Draw.Triangle.Fill (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
     $Checking:On
 End Sub
 
-Sub Draw.Triangle.Thick (x1, y1, x2, y2, x3, y3, thickness, K As _Unsigned Long)
+Sub Draw.Triangle.Thick (x1 As Long, y1 As Long, x2 As Long, y2 As Long, x3 As Long, y3 As Long, thickness As Long, K As _Unsigned Long)
     Draw.Line.Thick x1, y1, x2, y2, thickness, K
     Draw.Line.Thick x2, y2, x3, y3, thickness, K
     Draw.Line.Thick x3, y3, x1, y1, thickness, K
